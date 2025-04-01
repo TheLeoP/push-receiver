@@ -103,41 +103,43 @@ export default class PushReceiver extends Emitter<ClientEvents> {
 
         this.#lastStreamIdReported = -1
 
-        this.#socket = this.#config.proxy ? new net.Socket() : new tls.TLSSocket(null)
-        this.#socket.setKeepAlive(true)
-        this.#socket.on('connect', () => this.#handleSocketConnect())
+        if (this.#config.proxy) {
+            const tempSocket = new net.Socket()
+            tempSocket.connect({ host: this.#config.proxy.host, port: this.#config.proxy.port }, () => {
+                tempSocket.write(`CONNECT ${HOST}:${PORT} HTTP/1.0\r\n\r\n`, (err) => {
+                    if (err) throw err
+                })
+            })
+            let buf = ''
+            this.#socket = await new Promise<tls.TLSSocket>((res, rej) => {
+                const proxyResponseHandler = (data: Buffer) => {
+                    buf += data.toString()
+                    if (!buf.endsWith('\r\n\r\n')) return
+                    const firstLine = buf.split('\n')[0]
+                    const code = firstLine.split(' ')[1]
+                    if (!code.startsWith('2')) rej(new Error('The proxy rejected the connection'))
+
+                    tempSocket.off('data', proxyResponseHandler)
+                    res(new tls.TLSSocket(this.#socket))
+                };
+                tempSocket.on('data', proxyResponseHandler)
+            })
+        } else {
+            this.#socket = new tls.TLSSocket(null)
+            this.#socket.setKeepAlive(true)
+            this.#socket.on('connect', () => this.#handleSocketConnect())
+        }
+
         this.#socket.on('close', () => this.#handleSocketClose())
         this.#socket.on('error', (err) => this.#handleSocketError(err))
 
-        this.#socket.connect(
-          this.#config.proxy
-            ? { host: this.#config.proxy.host, port: this.#config.proxy.port }
-            : { host: HOST, port: PORT },
-        );
+        if (!this.#config.proxy) this.#socket.connect({ host: HOST, port: PORT });
+        // is already connected, won't trigger the event
+        else this.#handleSocketConnect()
 
-        const startParser = () => {
-            this.#parser = new Parser(this.#socket)
-            this.#parser.on('message', (data) => this.#handleMessage(data))
-            this.#parser.on('error', (err) => this.#handleParserError(err))
-        }
-        if (this.#config.proxy) {
-            let buf = ''
-            const proxyResponseHandler = (data: Buffer) => {
-                buf += data.toString()
-                if (!buf.endsWith('\r\n\r\n')) return
-                const firstLine = buf.split('\n')[0]
-                const code = firstLine.split(' ')[1]
-                if (!code.startsWith('2')) throw new Error('The proxy rejected the connection')
-
-                this.#socket = new tls.TLSSocket(this.#socket)
-                startParser()
-
-                this.#socket.off('data', proxyResponseHandler)
-            };
-            this.#socket.on('data', proxyResponseHandler)
-        } else {
-            startParser() 
-        }
+        this.#parser = new Parser(this.#socket)
+        this.#parser.on('message', (data) => this.#handleMessage(data))
+        this.#parser.on('error', (err) => this.#handleParserError(err))
 
         return new Promise((res) => {
             const dispose = this.onReady(() => {
@@ -242,20 +244,11 @@ export default class PushReceiver extends Emitter<ClientEvents> {
     }
 
     #handleSocketConnect = (): void => {
-        const onConnect = () => {
-            this.#sendLogin()
-            this.#retryCount = 0
-            this.emit('ON_CONNECT')
-            this.#startHeartbeat()
-        }
-        if (this.#config.proxy) {
-            this.#socket.write(`CONNECT ${HOST}:${PORT} HTTP/1.0\r\n\r\n`, (err) => {
-                if (err) throw err
-                onConnect()
-            })
-        } else {
-            onConnect()
-        }
+        this.#sendLogin()
+
+        this.#retryCount = 0
+        this.emit('ON_CONNECT')
+        this.#startHeartbeat()
     }
 
     #handleSocketClose = (): void => {
