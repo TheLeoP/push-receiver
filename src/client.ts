@@ -126,7 +126,7 @@ export default class PushReceiver extends Emitter<ClientEvents> {
                 buf += data.toString()
                 if (!buf.endsWith('\r\n\r\n')) return
                 const firstLine = buf.split('\n')[0]
-                const code = firstLine.split(' ')[2]
+                const code = firstLine.split(' ')[1]
                 if (!code.startsWith('2')) throw new Error('The proxy rejected the connection')
                 startParser()
 
