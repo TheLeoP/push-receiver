@@ -1,6 +1,7 @@
 import ProtobufJS from 'protobufjs'
 import Logger from './utils/logger'
 import { TLSSocket } from 'tls'
+import { Socket } from 'net'
 import Protos from './protos'
 import {
     Variables,
@@ -29,7 +30,7 @@ interface ParserEvents {
 }
 
 export default class Parser extends Emitter<ParserEvents> {
-    #socket: TLSSocket
+    #socket: Socket
     #state: ProcessingState = ProcessingState.MCS_VERSION_TAG_AND_SIZE
     #data: Buffer = Buffer.alloc(0)
     #messageTag = 0
@@ -37,7 +38,7 @@ export default class Parser extends Emitter<ParserEvents> {
     #handshakeComplete = false
     #isWaitingForData = true
 
-    constructor(socket: TLSSocket) {
+    constructor(socket: Socket) {
         super()
 
         this.#socket = socket

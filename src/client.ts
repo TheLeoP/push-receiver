@@ -1,6 +1,7 @@
 import Long from 'long'
 import ProtobufJS from 'protobufjs'
 import tls from 'tls'
+import net from 'net'
 import registerGCM, { checkIn } from './gcm'
 import registerFCM from './fcm'
 import createKeys from './keys'
@@ -38,7 +39,7 @@ interface ClientEvents {
 
 export default class PushReceiver extends Emitter<ClientEvents> {
     #config: Types.ClientConfig
-    #socket: tls.TLSSocket
+    #socket: net.Socket
     #retryCount = 0
     #retryTimeout: NodeJS.Timeout
     #parser: Parser
@@ -102,12 +103,16 @@ export default class PushReceiver extends Emitter<ClientEvents> {
 
         this.#lastStreamIdReported = -1
 
-        this.#socket = new tls.TLSSocket(null)
+        this.#socket = this.#config.proxy ? new net.Socket() : new tls.TLSSocket(null)
         this.#socket.setKeepAlive(true)
         this.#socket.on('connect', () => this.#handleSocketConnect())
         this.#socket.on('close', () => this.#handleSocketClose())
         this.#socket.on('error', (err) => this.#handleSocketError(err))
-        this.#socket.connect({ host: HOST, port: PORT })
+        this.#socket.connect(
+          this.#config.proxy
+            ? { host: this.#config.proxy.host, port: this.#config.proxy.port }
+            : { host: HOST, port: PORT },
+        );
 
         this.#parser = new Parser(this.#socket)
         this.#parser.on('message', (data) => this.#handleMessage(data))
@@ -218,9 +223,19 @@ export default class PushReceiver extends Emitter<ClientEvents> {
     }
 
     #handleSocketConnect = (): void => {
-        this.#retryCount = 0
-        this.emit('ON_CONNECT')
-        this.#startHeartbeat()
+        const onConnect = () => {
+            this.#retryCount = 0
+            this.emit('ON_CONNECT')
+            this.#startHeartbeat()
+        }
+        if (this.#config.proxy) {
+            this.#socket.write(`CONNECT ${HOST}:${PORT} HTTP/1.0\r\n\r\n`, (err) => {
+                if (err) throw err
+                onConnect()
+            })
+        } else {
+            onConnect()
+        }
     }
 
     #handleSocketClose = (): void => {

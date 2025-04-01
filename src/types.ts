@@ -154,6 +154,7 @@ export interface ClientConfig {
     vapidKey?: string
     heartbeatIntervalMs?: number
     firebase: FirebaseConfig
+    proxy?: {host: string, port: number}
 }
 
 export interface EventChangeCredentials {
