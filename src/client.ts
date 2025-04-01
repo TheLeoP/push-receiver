@@ -108,15 +108,34 @@ export default class PushReceiver extends Emitter<ClientEvents> {
         this.#socket.on('connect', () => this.#handleSocketConnect())
         this.#socket.on('close', () => this.#handleSocketClose())
         this.#socket.on('error', (err) => this.#handleSocketError(err))
+
         this.#socket.connect(
           this.#config.proxy
             ? { host: this.#config.proxy.host, port: this.#config.proxy.port }
             : { host: HOST, port: PORT },
         );
 
-        this.#parser = new Parser(this.#socket)
-        this.#parser.on('message', (data) => this.#handleMessage(data))
-        this.#parser.on('error', (err) => this.#handleParserError(err))
+        const startParser = () => {
+            this.#parser = new Parser(this.#socket)
+            this.#parser.on('message', (data) => this.#handleMessage(data))
+            this.#parser.on('error', (err) => this.#handleParserError(err))
+        }
+        if (this.#config.proxy) {
+            let buf = ''
+            const proxyResponseHandler = (data: Buffer) => {
+                buf += data.toString()
+                if (!buf.endsWith('\r\n\r\n')) return
+                const firstLine = buf.split('\n')[0]
+                const code = firstLine.split(' ')[2]
+                if (!code.startsWith('2')) throw new Error('The proxy rejected the connection')
+                startParser()
+
+                this.#socket.off('data', proxyResponseHandler)
+            };
+            this.#socket.on('data', proxyResponseHandler)
+        } else {
+            startParser() 
+        }
 
         return new Promise((res) => {
             const dispose = this.onReady(() => {
