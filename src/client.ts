@@ -128,6 +128,8 @@ export default class PushReceiver extends Emitter<ClientEvents> {
                 const firstLine = buf.split('\n')[0]
                 const code = firstLine.split(' ')[1]
                 if (!code.startsWith('2')) throw new Error('The proxy rejected the connection')
+
+                this.#socket = new tls.TLSSocket(this.#socket)
                 startParser()
 
                 this.#socket.off('data', proxyResponseHandler)
