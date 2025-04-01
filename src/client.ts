@@ -118,8 +118,6 @@ export default class PushReceiver extends Emitter<ClientEvents> {
         this.#parser.on('message', (data) => this.#handleMessage(data))
         this.#parser.on('error', (err) => this.#handleParserError(err))
 
-        this.#sendLogin()
-
         return new Promise((res) => {
             const dispose = this.onReady(() => {
                 dispose()
@@ -224,6 +222,7 @@ export default class PushReceiver extends Emitter<ClientEvents> {
 
     #handleSocketConnect = (): void => {
         const onConnect = () => {
+            this.#sendLogin()
             this.#retryCount = 0
             this.emit('ON_CONNECT')
             this.#startHeartbeat()
