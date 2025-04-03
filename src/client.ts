@@ -120,7 +120,8 @@ export default class PushReceiver extends Emitter<ClientEvents> {
                     if (!code.startsWith('2')) rej(new Error('The proxy rejected the connection'))
 
                     tempSocket.off('data', proxyResponseHandler)
-                    res(new tls.TLSSocket(this.#socket))
+                    const secureSocket = tls.connect({socket: tempSocket, servername: HOST})
+                    secureSocket.on('secureConnect', () => res(secureSocket))
                 };
                 tempSocket.on('data', proxyResponseHandler)
             })
@@ -133,13 +134,13 @@ export default class PushReceiver extends Emitter<ClientEvents> {
         this.#socket.on('close', () => this.#handleSocketClose())
         this.#socket.on('error', (err) => this.#handleSocketError(err))
 
-        if (!this.#config.proxy) this.#socket.connect({ host: HOST, port: PORT });
-        // is already connected, won't trigger the event
-        else this.#handleSocketConnect()
-
         this.#parser = new Parser(this.#socket)
         this.#parser.on('message', (data) => this.#handleMessage(data))
         this.#parser.on('error', (err) => this.#handleParserError(err))
+
+        if (!this.#config.proxy) this.#socket.connect({ host: HOST, port: PORT });
+        // is already connected, won't trigger the event
+        else this.#handleSocketConnect()
 
         return new Promise((res) => {
             const dispose = this.onReady(() => {
