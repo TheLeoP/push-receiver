@@ -105,7 +105,7 @@ export default class PushReceiver extends Emitter<ClientEvents> {
         this.#socket = new tls.TLSSocket(null)
         this.#socket.setKeepAlive(true)
         this.#socket.on('connect', () => this.#handleSocketConnect())
-        this.#socket.on('close', () => this.#handleSocketClose())
+        this.#socket.on('close', (hadError: boolean) => this.#handleSocketClose(hadError))
         this.#socket.on('error', (err) => this.#handleSocketError(err))
         this.#socket.connect({ host: HOST, port: PORT })
 
@@ -123,7 +123,7 @@ export default class PushReceiver extends Emitter<ClientEvents> {
         })
     }
 
-    destroy = () => {
+    destroy = (hadError :boolean) => {
         this.#clearReady();
 
         clearTimeout(this.#retryTimeout)
@@ -131,7 +131,7 @@ export default class PushReceiver extends Emitter<ClientEvents> {
 
         if (this.#socket) {
             this.#socket.removeAllListeners()
-            this.#socket.end()
+            if (!hadError) this.#socket.end()
             this.#socket.destroy()
             this.#socket = null
         }
@@ -224,10 +224,10 @@ export default class PushReceiver extends Emitter<ClientEvents> {
         this.#startHeartbeat()
     }
 
-    #handleSocketClose = (): void => {
+    #handleSocketClose = (hadError = false): void => {
         this.emit('ON_DISCONNECT')
         this.#clearHeartbeat()
-        this.#socketRetry()
+        this.#socketRetry(hadError)
     }
 
     #handleSocketError = (err: Error): void => {
@@ -235,8 +235,8 @@ export default class PushReceiver extends Emitter<ClientEvents> {
         // ignore, the close handler takes care of retry
     }
 
-    #socketRetry() {
-        this.destroy()
+    #socketRetry(hadError = false) {
+        this.destroy(hadError)
         const timeout = Math.min(++this.#retryCount, MAX_RETRY_TIMEOUT) * 1000
         this.#retryTimeout = setTimeout(() => this.connect(), timeout)
     }
