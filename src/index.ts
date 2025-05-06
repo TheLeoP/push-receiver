@@ -1,9 +1,6 @@
-import PushReceiver from "./client"
-import PushSender from "./sender"
+import PushReceiver from "./client";
+import PushSender from "./sender";
 
-export {
-    PushReceiver,
-    PushSender,
-}
+export { PushReceiver, PushSender };
 
-export default PushReceiver
+export default PushReceiver;
