@@ -10,15 +10,15 @@
     "*.md"
   ],
   "scripts": {
-    "protos:convert": "yarn pbjs -t static-module --force-long --wrap commonjs -o ./src/protos.js ./src/protos/*.proto",
-    "protos": "yarn pbts -o ./src/protos.d.ts ./src/protos.js",
-    "protos:build": "yarn protos:convert && yarn protos",
+    "protos:convert": "pbjs --target static-module --force-long --wrap es6 --out ./src/protos.js ./src/protos/*.proto",
+    "protos": "pbts -o ./src/protos.d.ts ./src/protos.js",
+    "protos:build": "npm run protos:convert && npm run protos",
     "protos:copy": "cp ./src/protos.* ./dist/",
-    "build": "yarn protos:build && yarn tsc && yarn protos:copy",
-    "prepublish": "yarn build",
-    "lint": "yarn eslint src --ext .ts",
-    "precommit": "yarn lint && yarn build",
-    "prepare": "yarn prepublish"
+    "build": "npm run protos:build && tsc && npm run protos:copy",
+    "prepublish": "npm run build",
+    "lint": "eslint src --ext .ts",
+    "precommit": "npm run lint && npm run build",
+    "prepare": "npm run prepublish"
   },
   "repository": {
     "type": "git",
@@ -52,8 +52,7 @@
     "http_ece": "^1.2.1",
     "jsonwebtoken": "^9.0.2",
     "long": "^5.2.3",
-    "protobufjs": "^7.4.0",
-    "yarn": "^1.22.22"
+    "protobufjs": "^7.4.0"
   },
   "engines": {
     "node": ">=20"

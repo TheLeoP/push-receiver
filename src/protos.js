@@ -1,22 +1,20 @@
 /*eslint-disable block-scoped-var, id-length, no-control-regex, no-magic-numbers, no-prototype-builtins, no-redeclare, no-shadow, no-var, sort-vars*/
-"use strict";
-
-var $protobuf = require("protobufjs/minimal");
+import * as $protobuf from "protobufjs/minimal";
 
 // Common aliases
-var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
+const $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
 
 // Exported root namespace
-var $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
+const $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
 
-$root.checkin_proto = (function() {
+export const checkin_proto = $root.checkin_proto = (() => {
 
     /**
      * Namespace checkin_proto.
      * @exports checkin_proto
      * @namespace
      */
-    var checkin_proto = {};
+    const checkin_proto = {};
 
     checkin_proto.ChromeBuildProto = (function() {
 
@@ -39,7 +37,7 @@ $root.checkin_proto = (function() {
          */
         function ChromeBuildProto(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -128,9 +126,9 @@ $root.checkin_proto = (function() {
         ChromeBuildProto.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.checkin_proto.ChromeBuildProto();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.checkin_proto.ChromeBuildProto();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1: {
                         message.platform = reader.int32();
@@ -219,7 +217,7 @@ $root.checkin_proto = (function() {
         ChromeBuildProto.fromObject = function fromObject(object) {
             if (object instanceof $root.checkin_proto.ChromeBuildProto)
                 return object;
-            var message = new $root.checkin_proto.ChromeBuildProto();
+            let message = new $root.checkin_proto.ChromeBuildProto();
             switch (object.platform) {
             default:
                 if (typeof object.platform === "number") {
@@ -297,7 +295,7 @@ $root.checkin_proto = (function() {
         ChromeBuildProto.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.defaults) {
                 object.platform = options.enums === String ? "PLATFORM_WIN" : 1;
                 object.chromeVersion = "";
@@ -350,7 +348,7 @@ $root.checkin_proto = (function() {
          * @property {number} PLATFORM_ANDROID=6 PLATFORM_ANDROID value
          */
         ChromeBuildProto.Platform = (function() {
-            var valuesById = {}, values = Object.create(valuesById);
+            const valuesById = {}, values = Object.create(valuesById);
             values[valuesById[1] = "PLATFORM_WIN"] = 1;
             values[valuesById[2] = "PLATFORM_MAC"] = 2;
             values[valuesById[3] = "PLATFORM_LINUX"] = 3;
@@ -371,7 +369,7 @@ $root.checkin_proto = (function() {
          * @property {number} CHANNEL_UNKNOWN=5 CHANNEL_UNKNOWN value
          */
         ChromeBuildProto.Channel = (function() {
-            var valuesById = {}, values = Object.create(valuesById);
+            const valuesById = {}, values = Object.create(valuesById);
             values[valuesById[1] = "CHANNEL_STABLE"] = 1;
             values[valuesById[2] = "CHANNEL_BETA"] = 2;
             values[valuesById[3] = "CHANNEL_DEV"] = 3;
@@ -408,7 +406,7 @@ $root.checkin_proto = (function() {
          */
         function AndroidCheckinProto(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -537,9 +535,9 @@ $root.checkin_proto = (function() {
         AndroidCheckinProto.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.checkin_proto.AndroidCheckinProto();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.checkin_proto.AndroidCheckinProto();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 2: {
                         message.lastCheckinMsec = reader.int64();
@@ -630,7 +628,7 @@ $root.checkin_proto = (function() {
                     break;
                 }
             if (message.chromeBuild != null && message.hasOwnProperty("chromeBuild")) {
-                var error = $root.checkin_proto.ChromeBuildProto.verify(message.chromeBuild);
+                let error = $root.checkin_proto.ChromeBuildProto.verify(message.chromeBuild);
                 if (error)
                     return "chromeBuild." + error;
             }
@@ -648,7 +646,7 @@ $root.checkin_proto = (function() {
         AndroidCheckinProto.fromObject = function fromObject(object) {
             if (object instanceof $root.checkin_proto.AndroidCheckinProto)
                 return object;
-            var message = new $root.checkin_proto.AndroidCheckinProto();
+            let message = new $root.checkin_proto.AndroidCheckinProto();
             if (object.lastCheckinMsec != null)
                 if ($util.Long)
                     (message.lastCheckinMsec = $util.Long.fromValue(object.lastCheckinMsec)).unsigned = false;
@@ -710,10 +708,10 @@ $root.checkin_proto = (function() {
         AndroidCheckinProto.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.defaults) {
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
+                    let long = new $util.Long(0, 0, false);
                     object.lastCheckinMsec = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.lastCheckinMsec = options.longs === String ? "0" : 0;
@@ -783,7 +781,7 @@ $root.checkin_proto = (function() {
      * @property {number} DEVICE_CHROME_OS=4 DEVICE_CHROME_OS value
      */
     checkin_proto.DeviceType = (function() {
-        var valuesById = {}, values = Object.create(valuesById);
+        const valuesById = {}, values = Object.create(valuesById);
         values[valuesById[1] = "DEVICE_ANDROID_OS"] = 1;
         values[valuesById[2] = "DEVICE_IOS_OS"] = 2;
         values[valuesById[3] = "DEVICE_CHROME_BROWSER"] = 3;
@@ -811,7 +809,7 @@ $root.checkin_proto = (function() {
          */
         function GservicesSetting(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -888,9 +886,9 @@ $root.checkin_proto = (function() {
         GservicesSetting.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.checkin_proto.GservicesSetting();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.checkin_proto.GservicesSetting();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1: {
                         message.name = reader.bytes();
@@ -957,7 +955,7 @@ $root.checkin_proto = (function() {
         GservicesSetting.fromObject = function fromObject(object) {
             if (object instanceof $root.checkin_proto.GservicesSetting)
                 return object;
-            var message = new $root.checkin_proto.GservicesSetting();
+            let message = new $root.checkin_proto.GservicesSetting();
             if (object.name != null)
                 if (typeof object.name === "string")
                     $util.base64.decode(object.name, message.name = $util.newBuffer($util.base64.length(object.name)), 0);
@@ -983,7 +981,7 @@ $root.checkin_proto = (function() {
         GservicesSetting.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.defaults) {
                 if (options.bytes === String)
                     object.name = "";
@@ -1079,7 +1077,7 @@ $root.checkin_proto = (function() {
             this.accountCookie = [];
             this.otaCert = [];
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -1292,12 +1290,12 @@ $root.checkin_proto = (function() {
             if (message.marketCheckin != null && Object.hasOwnProperty.call(message, "marketCheckin"))
                 writer.uint32(/* id 8, wireType 2 =*/66).string(message.marketCheckin);
             if (message.macAddr != null && message.macAddr.length)
-                for (var i = 0; i < message.macAddr.length; ++i)
+                for (let i = 0; i < message.macAddr.length; ++i)
                     writer.uint32(/* id 9, wireType 2 =*/74).string(message.macAddr[i]);
             if (message.meid != null && Object.hasOwnProperty.call(message, "meid"))
                 writer.uint32(/* id 10, wireType 2 =*/82).string(message.meid);
             if (message.accountCookie != null && message.accountCookie.length)
-                for (var i = 0; i < message.accountCookie.length; ++i)
+                for (let i = 0; i < message.accountCookie.length; ++i)
                     writer.uint32(/* id 11, wireType 2 =*/90).string(message.accountCookie[i]);
             if (message.timeZone != null && Object.hasOwnProperty.call(message, "timeZone"))
                 writer.uint32(/* id 12, wireType 2 =*/98).string(message.timeZone);
@@ -1306,14 +1304,14 @@ $root.checkin_proto = (function() {
             if (message.version != null && Object.hasOwnProperty.call(message, "version"))
                 writer.uint32(/* id 14, wireType 0 =*/112).int32(message.version);
             if (message.otaCert != null && message.otaCert.length)
-                for (var i = 0; i < message.otaCert.length; ++i)
+                for (let i = 0; i < message.otaCert.length; ++i)
                     writer.uint32(/* id 15, wireType 2 =*/122).string(message.otaCert[i]);
             if (message.serialNumber != null && Object.hasOwnProperty.call(message, "serialNumber"))
                 writer.uint32(/* id 16, wireType 2 =*/130).string(message.serialNumber);
             if (message.esn != null && Object.hasOwnProperty.call(message, "esn"))
                 writer.uint32(/* id 17, wireType 2 =*/138).string(message.esn);
             if (message.macAddrType != null && message.macAddrType.length)
-                for (var i = 0; i < message.macAddrType.length; ++i)
+                for (let i = 0; i < message.macAddrType.length; ++i)
                     writer.uint32(/* id 19, wireType 2 =*/154).string(message.macAddrType[i]);
             if (message.fragment != null && Object.hasOwnProperty.call(message, "fragment"))
                 writer.uint32(/* id 20, wireType 0 =*/160).int32(message.fragment);
@@ -1351,9 +1349,9 @@ $root.checkin_proto = (function() {
         AndroidCheckinRequest.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.checkin_proto.AndroidCheckinRequest();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.checkin_proto.AndroidCheckinRequest();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1: {
                         message.imei = reader.string();
@@ -1493,14 +1491,14 @@ $root.checkin_proto = (function() {
             if (message.macAddr != null && message.hasOwnProperty("macAddr")) {
                 if (!Array.isArray(message.macAddr))
                     return "macAddr: array expected";
-                for (var i = 0; i < message.macAddr.length; ++i)
+                for (let i = 0; i < message.macAddr.length; ++i)
                     if (!$util.isString(message.macAddr[i]))
                         return "macAddr: string[] expected";
             }
             if (message.macAddrType != null && message.hasOwnProperty("macAddrType")) {
                 if (!Array.isArray(message.macAddrType))
                     return "macAddrType: array expected";
-                for (var i = 0; i < message.macAddrType.length; ++i)
+                for (let i = 0; i < message.macAddrType.length; ++i)
                     if (!$util.isString(message.macAddrType[i]))
                         return "macAddrType: string[] expected";
             }
@@ -1523,7 +1521,7 @@ $root.checkin_proto = (function() {
                 if (!$util.isString(message.locale))
                     return "locale: string expected";
             {
-                var error = $root.checkin_proto.AndroidCheckinProto.verify(message.checkin);
+                let error = $root.checkin_proto.AndroidCheckinProto.verify(message.checkin);
                 if (error)
                     return "checkin." + error;
             }
@@ -1536,7 +1534,7 @@ $root.checkin_proto = (function() {
             if (message.accountCookie != null && message.hasOwnProperty("accountCookie")) {
                 if (!Array.isArray(message.accountCookie))
                     return "accountCookie: array expected";
-                for (var i = 0; i < message.accountCookie.length; ++i)
+                for (let i = 0; i < message.accountCookie.length; ++i)
                     if (!$util.isString(message.accountCookie[i]))
                         return "accountCookie: string[] expected";
             }
@@ -1552,7 +1550,7 @@ $root.checkin_proto = (function() {
             if (message.otaCert != null && message.hasOwnProperty("otaCert")) {
                 if (!Array.isArray(message.otaCert))
                     return "otaCert: array expected";
-                for (var i = 0; i < message.otaCert.length; ++i)
+                for (let i = 0; i < message.otaCert.length; ++i)
                     if (!$util.isString(message.otaCert[i]))
                         return "otaCert: string[] expected";
             }
@@ -1579,7 +1577,7 @@ $root.checkin_proto = (function() {
         AndroidCheckinRequest.fromObject = function fromObject(object) {
             if (object instanceof $root.checkin_proto.AndroidCheckinRequest)
                 return object;
-            var message = new $root.checkin_proto.AndroidCheckinRequest();
+            let message = new $root.checkin_proto.AndroidCheckinRequest();
             if (object.imei != null)
                 message.imei = String(object.imei);
             if (object.meid != null)
@@ -1588,14 +1586,14 @@ $root.checkin_proto = (function() {
                 if (!Array.isArray(object.macAddr))
                     throw TypeError(".checkin_proto.AndroidCheckinRequest.macAddr: array expected");
                 message.macAddr = [];
-                for (var i = 0; i < object.macAddr.length; ++i)
+                for (let i = 0; i < object.macAddr.length; ++i)
                     message.macAddr[i] = String(object.macAddr[i]);
             }
             if (object.macAddrType) {
                 if (!Array.isArray(object.macAddrType))
                     throw TypeError(".checkin_proto.AndroidCheckinRequest.macAddrType: array expected");
                 message.macAddrType = [];
-                for (var i = 0; i < object.macAddrType.length; ++i)
+                for (let i = 0; i < object.macAddrType.length; ++i)
                     message.macAddrType[i] = String(object.macAddrType[i]);
             }
             if (object.serialNumber != null)
@@ -1637,7 +1635,7 @@ $root.checkin_proto = (function() {
                 if (!Array.isArray(object.accountCookie))
                     throw TypeError(".checkin_proto.AndroidCheckinRequest.accountCookie: array expected");
                 message.accountCookie = [];
-                for (var i = 0; i < object.accountCookie.length; ++i)
+                for (let i = 0; i < object.accountCookie.length; ++i)
                     message.accountCookie[i] = String(object.accountCookie[i]);
             }
             if (object.timeZone != null)
@@ -1657,7 +1655,7 @@ $root.checkin_proto = (function() {
                 if (!Array.isArray(object.otaCert))
                     throw TypeError(".checkin_proto.AndroidCheckinRequest.otaCert: array expected");
                 message.otaCert = [];
-                for (var i = 0; i < object.otaCert.length; ++i)
+                for (let i = 0; i < object.otaCert.length; ++i)
                     message.otaCert[i] = String(object.otaCert[i]);
             }
             if (object.fragment != null)
@@ -1681,7 +1679,7 @@ $root.checkin_proto = (function() {
         AndroidCheckinRequest.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.arrays || options.defaults) {
                 object.macAddr = [];
                 object.accountCookie = [];
@@ -1691,7 +1689,7 @@ $root.checkin_proto = (function() {
             if (options.defaults) {
                 object.imei = "";
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
+                    let long = new $util.Long(0, 0, false);
                     object.id = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.id = options.longs === String ? "0" : 0;
@@ -1700,7 +1698,7 @@ $root.checkin_proto = (function() {
                 object.desiredBuild = "";
                 object.locale = "";
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
+                    let long = new $util.Long(0, 0, false);
                     object.loggingId = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.loggingId = options.longs === String ? "0" : 0;
@@ -1708,7 +1706,7 @@ $root.checkin_proto = (function() {
                 object.meid = "";
                 object.timeZone = "";
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
+                    let long = new $util.Long(0, 0, false);
                     object.securityToken = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.securityToken = options.longs === String ? "0" : 0;
@@ -1743,14 +1741,14 @@ $root.checkin_proto = (function() {
                 object.marketCheckin = message.marketCheckin;
             if (message.macAddr && message.macAddr.length) {
                 object.macAddr = [];
-                for (var j = 0; j < message.macAddr.length; ++j)
+                for (let j = 0; j < message.macAddr.length; ++j)
                     object.macAddr[j] = message.macAddr[j];
             }
             if (message.meid != null && message.hasOwnProperty("meid"))
                 object.meid = message.meid;
             if (message.accountCookie && message.accountCookie.length) {
                 object.accountCookie = [];
-                for (var j = 0; j < message.accountCookie.length; ++j)
+                for (let j = 0; j < message.accountCookie.length; ++j)
                     object.accountCookie[j] = message.accountCookie[j];
             }
             if (message.timeZone != null && message.hasOwnProperty("timeZone"))
@@ -1764,7 +1762,7 @@ $root.checkin_proto = (function() {
                 object.version = message.version;
             if (message.otaCert && message.otaCert.length) {
                 object.otaCert = [];
-                for (var j = 0; j < message.otaCert.length; ++j)
+                for (let j = 0; j < message.otaCert.length; ++j)
                     object.otaCert[j] = message.otaCert[j];
             }
             if (message.serialNumber != null && message.hasOwnProperty("serialNumber"))
@@ -1773,7 +1771,7 @@ $root.checkin_proto = (function() {
                 object.esn = message.esn;
             if (message.macAddrType && message.macAddrType.length) {
                 object.macAddrType = [];
-                for (var j = 0; j < message.macAddrType.length; ++j)
+                for (let j = 0; j < message.macAddrType.length; ++j)
                     object.macAddrType[j] = message.macAddrType[j];
             }
             if (message.fragment != null && message.hasOwnProperty("fragment"))
@@ -1844,7 +1842,7 @@ $root.checkin_proto = (function() {
             this.deleteSetting = [];
             this.setting = [];
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -1959,7 +1957,7 @@ $root.checkin_proto = (function() {
             if (message.digest != null && Object.hasOwnProperty.call(message, "digest"))
                 writer.uint32(/* id 4, wireType 2 =*/34).string(message.digest);
             if (message.setting != null && message.setting.length)
-                for (var i = 0; i < message.setting.length; ++i)
+                for (let i = 0; i < message.setting.length; ++i)
                     $root.checkin_proto.GservicesSetting.encode(message.setting[i], writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
             if (message.marketOk != null && Object.hasOwnProperty.call(message, "marketOk"))
                 writer.uint32(/* id 6, wireType 0 =*/48).bool(message.marketOk);
@@ -1970,7 +1968,7 @@ $root.checkin_proto = (function() {
             if (message.settingsDiff != null && Object.hasOwnProperty.call(message, "settingsDiff"))
                 writer.uint32(/* id 9, wireType 0 =*/72).bool(message.settingsDiff);
             if (message.deleteSetting != null && message.deleteSetting.length)
-                for (var i = 0; i < message.deleteSetting.length; ++i)
+                for (let i = 0; i < message.deleteSetting.length; ++i)
                     writer.uint32(/* id 10, wireType 2 =*/82).string(message.deleteSetting[i]);
             if (message.versionInfo != null && Object.hasOwnProperty.call(message, "versionInfo"))
                 writer.uint32(/* id 11, wireType 2 =*/90).string(message.versionInfo);
@@ -2004,9 +2002,9 @@ $root.checkin_proto = (function() {
         AndroidCheckinResponse.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.checkin_proto.AndroidCheckinResponse();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.checkin_proto.AndroidCheckinResponse();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1: {
                         message.statsOk = reader.bool();
@@ -2103,15 +2101,15 @@ $root.checkin_proto = (function() {
             if (message.deleteSetting != null && message.hasOwnProperty("deleteSetting")) {
                 if (!Array.isArray(message.deleteSetting))
                     return "deleteSetting: array expected";
-                for (var i = 0; i < message.deleteSetting.length; ++i)
+                for (let i = 0; i < message.deleteSetting.length; ++i)
                     if (!$util.isString(message.deleteSetting[i]))
                         return "deleteSetting: string[] expected";
             }
             if (message.setting != null && message.hasOwnProperty("setting")) {
                 if (!Array.isArray(message.setting))
                     return "setting: array expected";
-                for (var i = 0; i < message.setting.length; ++i) {
-                    var error = $root.checkin_proto.GservicesSetting.verify(message.setting[i]);
+                for (let i = 0; i < message.setting.length; ++i) {
+                    let error = $root.checkin_proto.GservicesSetting.verify(message.setting[i]);
                     if (error)
                         return "setting." + error;
                 }
@@ -2142,7 +2140,7 @@ $root.checkin_proto = (function() {
         AndroidCheckinResponse.fromObject = function fromObject(object) {
             if (object instanceof $root.checkin_proto.AndroidCheckinResponse)
                 return object;
-            var message = new $root.checkin_proto.AndroidCheckinResponse();
+            let message = new $root.checkin_proto.AndroidCheckinResponse();
             if (object.statsOk != null)
                 message.statsOk = Boolean(object.statsOk);
             if (object.timeMsec != null)
@@ -2162,14 +2160,14 @@ $root.checkin_proto = (function() {
                 if (!Array.isArray(object.deleteSetting))
                     throw TypeError(".checkin_proto.AndroidCheckinResponse.deleteSetting: array expected");
                 message.deleteSetting = [];
-                for (var i = 0; i < object.deleteSetting.length; ++i)
+                for (let i = 0; i < object.deleteSetting.length; ++i)
                     message.deleteSetting[i] = String(object.deleteSetting[i]);
             }
             if (object.setting) {
                 if (!Array.isArray(object.setting))
                     throw TypeError(".checkin_proto.AndroidCheckinResponse.setting: array expected");
                 message.setting = [];
-                for (var i = 0; i < object.setting.length; ++i) {
+                for (let i = 0; i < object.setting.length; ++i) {
                     if (typeof object.setting[i] !== "object")
                         throw TypeError(".checkin_proto.AndroidCheckinResponse.setting: object expected");
                     message.setting[i] = $root.checkin_proto.GservicesSetting.fromObject(object.setting[i]);
@@ -2212,7 +2210,7 @@ $root.checkin_proto = (function() {
         AndroidCheckinResponse.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.arrays || options.defaults) {
                 object.setting = [];
                 object.deleteSetting = [];
@@ -2220,19 +2218,19 @@ $root.checkin_proto = (function() {
             if (options.defaults) {
                 object.statsOk = false;
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
+                    let long = new $util.Long(0, 0, false);
                     object.timeMsec = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.timeMsec = options.longs === String ? "0" : 0;
                 object.digest = "";
                 object.marketOk = false;
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
+                    let long = new $util.Long(0, 0, false);
                     object.androidId = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.androidId = options.longs === String ? "0" : 0;
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
+                    let long = new $util.Long(0, 0, false);
                     object.securityToken = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.securityToken = options.longs === String ? "0" : 0;
@@ -2250,7 +2248,7 @@ $root.checkin_proto = (function() {
                 object.digest = message.digest;
             if (message.setting && message.setting.length) {
                 object.setting = [];
-                for (var j = 0; j < message.setting.length; ++j)
+                for (let j = 0; j < message.setting.length; ++j)
                     object.setting[j] = $root.checkin_proto.GservicesSetting.toObject(message.setting[j], options);
             }
             if (message.marketOk != null && message.hasOwnProperty("marketOk"))
@@ -2269,7 +2267,7 @@ $root.checkin_proto = (function() {
                 object.settingsDiff = message.settingsDiff;
             if (message.deleteSetting && message.deleteSetting.length) {
                 object.deleteSetting = [];
-                for (var j = 0; j < message.deleteSetting.length; ++j)
+                for (let j = 0; j < message.deleteSetting.length; ++j)
                     object.deleteSetting[j] = message.deleteSetting[j];
             }
             if (message.versionInfo != null && message.hasOwnProperty("versionInfo"))
@@ -2309,14 +2307,14 @@ $root.checkin_proto = (function() {
     return checkin_proto;
 })();
 
-$root.mcs_proto = (function() {
+export const mcs_proto = $root.mcs_proto = (() => {
 
     /**
      * Namespace mcs_proto.
      * @exports mcs_proto
      * @namespace
      */
-    var mcs_proto = {};
+    const mcs_proto = {};
 
     mcs_proto.HeartbeatPing = (function() {
 
@@ -2339,7 +2337,7 @@ $root.mcs_proto = (function() {
          */
         function HeartbeatPing(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -2428,9 +2426,9 @@ $root.mcs_proto = (function() {
         HeartbeatPing.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.HeartbeatPing();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.HeartbeatPing();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1: {
                         message.streamId = reader.int32();
@@ -2502,7 +2500,7 @@ $root.mcs_proto = (function() {
         HeartbeatPing.fromObject = function fromObject(object) {
             if (object instanceof $root.mcs_proto.HeartbeatPing)
                 return object;
-            var message = new $root.mcs_proto.HeartbeatPing();
+            let message = new $root.mcs_proto.HeartbeatPing();
             if (object.streamId != null)
                 message.streamId = object.streamId | 0;
             if (object.lastStreamIdReceived != null)
@@ -2531,12 +2529,12 @@ $root.mcs_proto = (function() {
         HeartbeatPing.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.defaults) {
                 object.streamId = 0;
                 object.lastStreamIdReceived = 0;
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
+                    let long = new $util.Long(0, 0, false);
                     object.status = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.status = options.longs === String ? "0" : 0;
@@ -2603,7 +2601,7 @@ $root.mcs_proto = (function() {
          */
         function HeartbeatAck(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -2692,9 +2690,9 @@ $root.mcs_proto = (function() {
         HeartbeatAck.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.HeartbeatAck();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.HeartbeatAck();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1: {
                         message.streamId = reader.int32();
@@ -2766,7 +2764,7 @@ $root.mcs_proto = (function() {
         HeartbeatAck.fromObject = function fromObject(object) {
             if (object instanceof $root.mcs_proto.HeartbeatAck)
                 return object;
-            var message = new $root.mcs_proto.HeartbeatAck();
+            let message = new $root.mcs_proto.HeartbeatAck();
             if (object.streamId != null)
                 message.streamId = object.streamId | 0;
             if (object.lastStreamIdReceived != null)
@@ -2795,12 +2793,12 @@ $root.mcs_proto = (function() {
         HeartbeatAck.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.defaults) {
                 object.streamId = 0;
                 object.lastStreamIdReceived = 0;
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
+                    let long = new $util.Long(0, 0, false);
                     object.status = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.status = options.longs === String ? "0" : 0;
@@ -2868,7 +2866,7 @@ $root.mcs_proto = (function() {
          */
         function ErrorInfo(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -2966,9 +2964,9 @@ $root.mcs_proto = (function() {
         ErrorInfo.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.ErrorInfo();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.ErrorInfo();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1: {
                         message.code = reader.int32();
@@ -3032,7 +3030,7 @@ $root.mcs_proto = (function() {
                 if (!$util.isString(message.type))
                     return "type: string expected";
             if (message.extension != null && message.hasOwnProperty("extension")) {
-                var error = $root.mcs_proto.Extension.verify(message.extension);
+                let error = $root.mcs_proto.Extension.verify(message.extension);
                 if (error)
                     return "extension." + error;
             }
@@ -3050,7 +3048,7 @@ $root.mcs_proto = (function() {
         ErrorInfo.fromObject = function fromObject(object) {
             if (object instanceof $root.mcs_proto.ErrorInfo)
                 return object;
-            var message = new $root.mcs_proto.ErrorInfo();
+            let message = new $root.mcs_proto.ErrorInfo();
             if (object.code != null)
                 message.code = object.code | 0;
             if (object.message != null)
@@ -3077,7 +3075,7 @@ $root.mcs_proto = (function() {
         ErrorInfo.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.defaults) {
                 object.code = 0;
                 object.message = "";
@@ -3144,7 +3142,7 @@ $root.mcs_proto = (function() {
          */
         function Setting(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -3221,9 +3219,9 @@ $root.mcs_proto = (function() {
         Setting.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.Setting();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.Setting();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1: {
                         message.name = reader.string();
@@ -3290,7 +3288,7 @@ $root.mcs_proto = (function() {
         Setting.fromObject = function fromObject(object) {
             if (object instanceof $root.mcs_proto.Setting)
                 return object;
-            var message = new $root.mcs_proto.Setting();
+            let message = new $root.mcs_proto.Setting();
             if (object.name != null)
                 message.name = String(object.name);
             if (object.value != null)
@@ -3310,7 +3308,7 @@ $root.mcs_proto = (function() {
         Setting.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.defaults) {
                 object.name = "";
                 object.value = "";
@@ -3372,7 +3370,7 @@ $root.mcs_proto = (function() {
          */
         function HeartbeatStat(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -3458,9 +3456,9 @@ $root.mcs_proto = (function() {
         HeartbeatStat.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.HeartbeatStat();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.HeartbeatStat();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1: {
                         message.ip = reader.string();
@@ -3535,7 +3533,7 @@ $root.mcs_proto = (function() {
         HeartbeatStat.fromObject = function fromObject(object) {
             if (object instanceof $root.mcs_proto.HeartbeatStat)
                 return object;
-            var message = new $root.mcs_proto.HeartbeatStat();
+            let message = new $root.mcs_proto.HeartbeatStat();
             if (object.ip != null)
                 message.ip = String(object.ip);
             if (object.timeout != null)
@@ -3557,7 +3555,7 @@ $root.mcs_proto = (function() {
         HeartbeatStat.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.defaults) {
                 object.ip = "";
                 object.timeout = false;
@@ -3622,7 +3620,7 @@ $root.mcs_proto = (function() {
          */
         function HeartbeatConfig(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -3711,9 +3709,9 @@ $root.mcs_proto = (function() {
         HeartbeatConfig.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.HeartbeatConfig();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.HeartbeatConfig();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1: {
                         message.uploadStat = reader.bool();
@@ -3785,7 +3783,7 @@ $root.mcs_proto = (function() {
         HeartbeatConfig.fromObject = function fromObject(object) {
             if (object instanceof $root.mcs_proto.HeartbeatConfig)
                 return object;
-            var message = new $root.mcs_proto.HeartbeatConfig();
+            let message = new $root.mcs_proto.HeartbeatConfig();
             if (object.uploadStat != null)
                 message.uploadStat = Boolean(object.uploadStat);
             if (object.ip != null)
@@ -3807,7 +3805,7 @@ $root.mcs_proto = (function() {
         HeartbeatConfig.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.defaults) {
                 object.uploadStat = false;
                 object.ip = "";
@@ -3876,7 +3874,7 @@ $root.mcs_proto = (function() {
          */
         function ClientEvent(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -4005,9 +4003,9 @@ $root.mcs_proto = (function() {
         ClientEvent.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.ClientEvent();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.ClientEvent();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1: {
                         message.type = reader.int32();
@@ -4114,7 +4112,7 @@ $root.mcs_proto = (function() {
         ClientEvent.fromObject = function fromObject(object) {
             if (object instanceof $root.mcs_proto.ClientEvent)
                 return object;
-            var message = new $root.mcs_proto.ClientEvent();
+            let message = new $root.mcs_proto.ClientEvent();
             switch (object.type) {
             default:
                 if (typeof object.type === "number") {
@@ -4187,24 +4185,24 @@ $root.mcs_proto = (function() {
         ClientEvent.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.defaults) {
                 object.type = options.enums === String ? "UNKNOWN" : 0;
                 object.numberDiscardedEvents = 0;
                 object.networkType = 0;
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, true);
+                    let long = new $util.Long(0, 0, true);
                     object.timeConnectionStartedMs = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.timeConnectionStartedMs = options.longs === String ? "0" : 0;
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, true);
+                    let long = new $util.Long(0, 0, true);
                     object.timeConnectionEndedMs = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.timeConnectionEndedMs = options.longs === String ? "0" : 0;
                 object.errorCode = 0;
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, true);
+                    let long = new $util.Long(0, 0, true);
                     object.timeConnectionEstablishedMs = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.timeConnectionEstablishedMs = options.longs === String ? "0" : 0;
@@ -4271,7 +4269,7 @@ $root.mcs_proto = (function() {
          * @property {number} SUCCESSFUL_CONNECTION=3 SUCCESSFUL_CONNECTION value
          */
         ClientEvent.Type = (function() {
-            var valuesById = {}, values = Object.create(valuesById);
+            const valuesById = {}, values = Object.create(valuesById);
             values[valuesById[0] = "UNKNOWN"] = 0;
             values[valuesById[1] = "DISCARDED_EVENTS"] = 1;
             values[valuesById[2] = "FAILED_CONNECTION"] = 2;
@@ -4320,7 +4318,7 @@ $root.mcs_proto = (function() {
             this.receivedPersistentId = [];
             this.clientEvent = [];
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -4495,10 +4493,10 @@ $root.mcs_proto = (function() {
             if (message.lastRmqId != null && Object.hasOwnProperty.call(message, "lastRmqId"))
                 writer.uint32(/* id 7, wireType 0 =*/56).int64(message.lastRmqId);
             if (message.setting != null && message.setting.length)
-                for (var i = 0; i < message.setting.length; ++i)
+                for (let i = 0; i < message.setting.length; ++i)
                     $root.mcs_proto.Setting.encode(message.setting[i], writer.uint32(/* id 8, wireType 2 =*/66).fork()).ldelim();
             if (message.receivedPersistentId != null && message.receivedPersistentId.length)
-                for (var i = 0; i < message.receivedPersistentId.length; ++i)
+                for (let i = 0; i < message.receivedPersistentId.length; ++i)
                     writer.uint32(/* id 10, wireType 2 =*/82).string(message.receivedPersistentId[i]);
             if (message.adaptiveHeartbeat != null && Object.hasOwnProperty.call(message, "adaptiveHeartbeat"))
                 writer.uint32(/* id 12, wireType 0 =*/96).bool(message.adaptiveHeartbeat);
@@ -4515,7 +4513,7 @@ $root.mcs_proto = (function() {
             if (message.status != null && Object.hasOwnProperty.call(message, "status"))
                 writer.uint32(/* id 18, wireType 0 =*/144).int64(message.status);
             if (message.clientEvent != null && message.clientEvent.length)
-                for (var i = 0; i < message.clientEvent.length; ++i)
+                for (let i = 0; i < message.clientEvent.length; ++i)
                     $root.mcs_proto.ClientEvent.encode(message.clientEvent[i], writer.uint32(/* id 22, wireType 2 =*/178).fork()).ldelim();
             return writer;
         };
@@ -4547,9 +4545,9 @@ $root.mcs_proto = (function() {
         LoginRequest.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.LoginRequest();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.LoginRequest();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1: {
                         message.id = reader.string();
@@ -4689,8 +4687,8 @@ $root.mcs_proto = (function() {
             if (message.setting != null && message.hasOwnProperty("setting")) {
                 if (!Array.isArray(message.setting))
                     return "setting: array expected";
-                for (var i = 0; i < message.setting.length; ++i) {
-                    var error = $root.mcs_proto.Setting.verify(message.setting[i]);
+                for (let i = 0; i < message.setting.length; ++i) {
+                    let error = $root.mcs_proto.Setting.verify(message.setting[i]);
                     if (error)
                         return "setting." + error;
                 }
@@ -4698,7 +4696,7 @@ $root.mcs_proto = (function() {
             if (message.receivedPersistentId != null && message.hasOwnProperty("receivedPersistentId")) {
                 if (!Array.isArray(message.receivedPersistentId))
                     return "receivedPersistentId: array expected";
-                for (var i = 0; i < message.receivedPersistentId.length; ++i)
+                for (let i = 0; i < message.receivedPersistentId.length; ++i)
                     if (!$util.isString(message.receivedPersistentId[i]))
                         return "receivedPersistentId: string[] expected";
             }
@@ -4706,7 +4704,7 @@ $root.mcs_proto = (function() {
                 if (typeof message.adaptiveHeartbeat !== "boolean")
                     return "adaptiveHeartbeat: boolean expected";
             if (message.heartbeatStat != null && message.hasOwnProperty("heartbeatStat")) {
-                var error = $root.mcs_proto.HeartbeatStat.verify(message.heartbeatStat);
+                let error = $root.mcs_proto.HeartbeatStat.verify(message.heartbeatStat);
                 if (error)
                     return "heartbeatStat." + error;
             }
@@ -4732,8 +4730,8 @@ $root.mcs_proto = (function() {
             if (message.clientEvent != null && message.hasOwnProperty("clientEvent")) {
                 if (!Array.isArray(message.clientEvent))
                     return "clientEvent: array expected";
-                for (var i = 0; i < message.clientEvent.length; ++i) {
-                    var error = $root.mcs_proto.ClientEvent.verify(message.clientEvent[i]);
+                for (let i = 0; i < message.clientEvent.length; ++i) {
+                    let error = $root.mcs_proto.ClientEvent.verify(message.clientEvent[i]);
                     if (error)
                         return "clientEvent." + error;
                 }
@@ -4752,7 +4750,7 @@ $root.mcs_proto = (function() {
         LoginRequest.fromObject = function fromObject(object) {
             if (object instanceof $root.mcs_proto.LoginRequest)
                 return object;
-            var message = new $root.mcs_proto.LoginRequest();
+            let message = new $root.mcs_proto.LoginRequest();
             if (object.id != null)
                 message.id = String(object.id);
             if (object.domain != null)
@@ -4778,7 +4776,7 @@ $root.mcs_proto = (function() {
                 if (!Array.isArray(object.setting))
                     throw TypeError(".mcs_proto.LoginRequest.setting: array expected");
                 message.setting = [];
-                for (var i = 0; i < object.setting.length; ++i) {
+                for (let i = 0; i < object.setting.length; ++i) {
                     if (typeof object.setting[i] !== "object")
                         throw TypeError(".mcs_proto.LoginRequest.setting: object expected");
                     message.setting[i] = $root.mcs_proto.Setting.fromObject(object.setting[i]);
@@ -4788,7 +4786,7 @@ $root.mcs_proto = (function() {
                 if (!Array.isArray(object.receivedPersistentId))
                     throw TypeError(".mcs_proto.LoginRequest.receivedPersistentId: array expected");
                 message.receivedPersistentId = [];
-                for (var i = 0; i < object.receivedPersistentId.length; ++i)
+                for (let i = 0; i < object.receivedPersistentId.length; ++i)
                     message.receivedPersistentId[i] = String(object.receivedPersistentId[i]);
             }
             if (object.adaptiveHeartbeat != null)
@@ -4836,7 +4834,7 @@ $root.mcs_proto = (function() {
                 if (!Array.isArray(object.clientEvent))
                     throw TypeError(".mcs_proto.LoginRequest.clientEvent: array expected");
                 message.clientEvent = [];
-                for (var i = 0; i < object.clientEvent.length; ++i) {
+                for (let i = 0; i < object.clientEvent.length; ++i) {
                     if (typeof object.clientEvent[i] !== "object")
                         throw TypeError(".mcs_proto.LoginRequest.clientEvent: object expected");
                     message.clientEvent[i] = $root.mcs_proto.ClientEvent.fromObject(object.clientEvent[i]);
@@ -4857,7 +4855,7 @@ $root.mcs_proto = (function() {
         LoginRequest.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.arrays || options.defaults) {
                 object.setting = [];
                 object.receivedPersistentId = [];
@@ -4871,7 +4869,7 @@ $root.mcs_proto = (function() {
                 object.authToken = "";
                 object.deviceId = "";
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
+                    let long = new $util.Long(0, 0, false);
                     object.lastRmqId = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.lastRmqId = options.longs === String ? "0" : 0;
@@ -4879,14 +4877,14 @@ $root.mcs_proto = (function() {
                 object.heartbeatStat = null;
                 object.useRmq2 = false;
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
+                    let long = new $util.Long(0, 0, false);
                     object.accountId = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.accountId = options.longs === String ? "0" : 0;
                 object.authService = options.enums === String ? "ANDROID_ID" : 2;
                 object.networkType = 0;
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
+                    let long = new $util.Long(0, 0, false);
                     object.status = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.status = options.longs === String ? "0" : 0;
@@ -4910,12 +4908,12 @@ $root.mcs_proto = (function() {
                     object.lastRmqId = options.longs === String ? $util.Long.prototype.toString.call(message.lastRmqId) : options.longs === Number ? new $util.LongBits(message.lastRmqId.low >>> 0, message.lastRmqId.high >>> 0).toNumber() : message.lastRmqId;
             if (message.setting && message.setting.length) {
                 object.setting = [];
-                for (var j = 0; j < message.setting.length; ++j)
+                for (let j = 0; j < message.setting.length; ++j)
                     object.setting[j] = $root.mcs_proto.Setting.toObject(message.setting[j], options);
             }
             if (message.receivedPersistentId && message.receivedPersistentId.length) {
                 object.receivedPersistentId = [];
-                for (var j = 0; j < message.receivedPersistentId.length; ++j)
+                for (let j = 0; j < message.receivedPersistentId.length; ++j)
                     object.receivedPersistentId[j] = message.receivedPersistentId[j];
             }
             if (message.adaptiveHeartbeat != null && message.hasOwnProperty("adaptiveHeartbeat"))
@@ -4940,7 +4938,7 @@ $root.mcs_proto = (function() {
                     object.status = options.longs === String ? $util.Long.prototype.toString.call(message.status) : options.longs === Number ? new $util.LongBits(message.status.low >>> 0, message.status.high >>> 0).toNumber() : message.status;
             if (message.clientEvent && message.clientEvent.length) {
                 object.clientEvent = [];
-                for (var j = 0; j < message.clientEvent.length; ++j)
+                for (let j = 0; j < message.clientEvent.length; ++j)
                     object.clientEvent[j] = $root.mcs_proto.ClientEvent.toObject(message.clientEvent[j], options);
             }
             return object;
@@ -4979,7 +4977,7 @@ $root.mcs_proto = (function() {
          * @property {number} ANDROID_ID=2 ANDROID_ID value
          */
         LoginRequest.AuthService = (function() {
-            var valuesById = {}, values = Object.create(valuesById);
+            const valuesById = {}, values = Object.create(valuesById);
             values[valuesById[2] = "ANDROID_ID"] = 2;
             return values;
         })();
@@ -5014,7 +5012,7 @@ $root.mcs_proto = (function() {
         function LoginResponse(properties) {
             this.setting = [];
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -5113,7 +5111,7 @@ $root.mcs_proto = (function() {
             if (message.error != null && Object.hasOwnProperty.call(message, "error"))
                 $root.mcs_proto.ErrorInfo.encode(message.error, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
             if (message.setting != null && message.setting.length)
-                for (var i = 0; i < message.setting.length; ++i)
+                for (let i = 0; i < message.setting.length; ++i)
                     $root.mcs_proto.Setting.encode(message.setting[i], writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
             if (message.streamId != null && Object.hasOwnProperty.call(message, "streamId"))
                 writer.uint32(/* id 5, wireType 0 =*/40).int32(message.streamId);
@@ -5153,9 +5151,9 @@ $root.mcs_proto = (function() {
         LoginResponse.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.LoginResponse();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.LoginResponse();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1: {
                         message.id = reader.string();
@@ -5234,15 +5232,15 @@ $root.mcs_proto = (function() {
                 if (!$util.isString(message.jid))
                     return "jid: string expected";
             if (message.error != null && message.hasOwnProperty("error")) {
-                var error = $root.mcs_proto.ErrorInfo.verify(message.error);
+                let error = $root.mcs_proto.ErrorInfo.verify(message.error);
                 if (error)
                     return "error." + error;
             }
             if (message.setting != null && message.hasOwnProperty("setting")) {
                 if (!Array.isArray(message.setting))
                     return "setting: array expected";
-                for (var i = 0; i < message.setting.length; ++i) {
-                    var error = $root.mcs_proto.Setting.verify(message.setting[i]);
+                for (let i = 0; i < message.setting.length; ++i) {
+                    let error = $root.mcs_proto.Setting.verify(message.setting[i]);
                     if (error)
                         return "setting." + error;
                 }
@@ -5254,7 +5252,7 @@ $root.mcs_proto = (function() {
                 if (!$util.isInteger(message.lastStreamIdReceived))
                     return "lastStreamIdReceived: integer expected";
             if (message.heartbeatConfig != null && message.hasOwnProperty("heartbeatConfig")) {
-                var error = $root.mcs_proto.HeartbeatConfig.verify(message.heartbeatConfig);
+                let error = $root.mcs_proto.HeartbeatConfig.verify(message.heartbeatConfig);
                 if (error)
                     return "heartbeatConfig." + error;
             }
@@ -5275,7 +5273,7 @@ $root.mcs_proto = (function() {
         LoginResponse.fromObject = function fromObject(object) {
             if (object instanceof $root.mcs_proto.LoginResponse)
                 return object;
-            var message = new $root.mcs_proto.LoginResponse();
+            let message = new $root.mcs_proto.LoginResponse();
             if (object.id != null)
                 message.id = String(object.id);
             if (object.jid != null)
@@ -5289,7 +5287,7 @@ $root.mcs_proto = (function() {
                 if (!Array.isArray(object.setting))
                     throw TypeError(".mcs_proto.LoginResponse.setting: array expected");
                 message.setting = [];
-                for (var i = 0; i < object.setting.length; ++i) {
+                for (let i = 0; i < object.setting.length; ++i) {
                     if (typeof object.setting[i] !== "object")
                         throw TypeError(".mcs_proto.LoginResponse.setting: object expected");
                     message.setting[i] = $root.mcs_proto.Setting.fromObject(object.setting[i]);
@@ -5328,7 +5326,7 @@ $root.mcs_proto = (function() {
         LoginResponse.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.arrays || options.defaults)
                 object.setting = [];
             if (options.defaults) {
@@ -5339,7 +5337,7 @@ $root.mcs_proto = (function() {
                 object.lastStreamIdReceived = 0;
                 object.heartbeatConfig = null;
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
+                    let long = new $util.Long(0, 0, false);
                     object.serverTimestamp = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.serverTimestamp = options.longs === String ? "0" : 0;
@@ -5352,7 +5350,7 @@ $root.mcs_proto = (function() {
                 object.error = $root.mcs_proto.ErrorInfo.toObject(message.error, options);
             if (message.setting && message.setting.length) {
                 object.setting = [];
-                for (var j = 0; j < message.setting.length; ++j)
+                for (let j = 0; j < message.setting.length; ++j)
                     object.setting[j] = $root.mcs_proto.Setting.toObject(message.setting[j], options);
             }
             if (message.streamId != null && message.hasOwnProperty("streamId"))
@@ -5418,7 +5416,7 @@ $root.mcs_proto = (function() {
          */
         function StreamErrorStanza(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -5496,9 +5494,9 @@ $root.mcs_proto = (function() {
         StreamErrorStanza.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.StreamErrorStanza();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.StreamErrorStanza();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1: {
                         message.type = reader.string();
@@ -5564,7 +5562,7 @@ $root.mcs_proto = (function() {
         StreamErrorStanza.fromObject = function fromObject(object) {
             if (object instanceof $root.mcs_proto.StreamErrorStanza)
                 return object;
-            var message = new $root.mcs_proto.StreamErrorStanza();
+            let message = new $root.mcs_proto.StreamErrorStanza();
             if (object.type != null)
                 message.type = String(object.type);
             if (object.text != null)
@@ -5584,7 +5582,7 @@ $root.mcs_proto = (function() {
         StreamErrorStanza.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.defaults) {
                 object.type = "";
                 object.text = "";
@@ -5643,7 +5641,7 @@ $root.mcs_proto = (function() {
          */
         function Close(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -5702,9 +5700,9 @@ $root.mcs_proto = (function() {
         Close.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.Close();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.Close();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 default:
                     reader.skipType(tag & 7);
@@ -5820,7 +5818,7 @@ $root.mcs_proto = (function() {
          */
         function Extension(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -5897,9 +5895,9 @@ $root.mcs_proto = (function() {
         Extension.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.Extension();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.Extension();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1: {
                         message.id = reader.int32();
@@ -5966,7 +5964,7 @@ $root.mcs_proto = (function() {
         Extension.fromObject = function fromObject(object) {
             if (object instanceof $root.mcs_proto.Extension)
                 return object;
-            var message = new $root.mcs_proto.Extension();
+            let message = new $root.mcs_proto.Extension();
             if (object.id != null)
                 message.id = object.id | 0;
             if (object.data != null)
@@ -5989,7 +5987,7 @@ $root.mcs_proto = (function() {
         Extension.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.defaults) {
                 object.id = 0;
                 if (options.bytes === String)
@@ -6068,7 +6066,7 @@ $root.mcs_proto = (function() {
          */
         function IqStanza(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -6245,9 +6243,9 @@ $root.mcs_proto = (function() {
         IqStanza.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.IqStanza();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.IqStanza();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1: {
                         message.rmqId = reader.int64();
@@ -6357,12 +6355,12 @@ $root.mcs_proto = (function() {
                 if (!$util.isString(message.to))
                     return "to: string expected";
             if (message.error != null && message.hasOwnProperty("error")) {
-                var error = $root.mcs_proto.ErrorInfo.verify(message.error);
+                let error = $root.mcs_proto.ErrorInfo.verify(message.error);
                 if (error)
                     return "error." + error;
             }
             if (message.extension != null && message.hasOwnProperty("extension")) {
-                var error = $root.mcs_proto.Extension.verify(message.extension);
+                let error = $root.mcs_proto.Extension.verify(message.extension);
                 if (error)
                     return "extension." + error;
             }
@@ -6395,7 +6393,7 @@ $root.mcs_proto = (function() {
         IqStanza.fromObject = function fromObject(object) {
             if (object instanceof $root.mcs_proto.IqStanza)
                 return object;
-            var message = new $root.mcs_proto.IqStanza();
+            let message = new $root.mcs_proto.IqStanza();
             if (object.rmqId != null)
                 if ($util.Long)
                     (message.rmqId = $util.Long.fromValue(object.rmqId)).unsigned = false;
@@ -6484,10 +6482,10 @@ $root.mcs_proto = (function() {
         IqStanza.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.defaults) {
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
+                    let long = new $util.Long(0, 0, false);
                     object.rmqId = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.rmqId = options.longs === String ? "0" : 0;
@@ -6501,12 +6499,12 @@ $root.mcs_proto = (function() {
                 object.streamId = 0;
                 object.lastStreamIdReceived = 0;
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
+                    let long = new $util.Long(0, 0, false);
                     object.accountId = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.accountId = options.longs === String ? "0" : 0;
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
+                    let long = new $util.Long(0, 0, false);
                     object.status = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.status = options.longs === String ? "0" : 0;
@@ -6583,7 +6581,7 @@ $root.mcs_proto = (function() {
          * @property {number} IQ_ERROR=3 IQ_ERROR value
          */
         IqStanza.IqType = (function() {
-            var valuesById = {}, values = Object.create(valuesById);
+            const valuesById = {}, values = Object.create(valuesById);
             values[valuesById[0] = "GET"] = 0;
             values[valuesById[1] = "SET"] = 1;
             values[valuesById[2] = "RESULT"] = 2;
@@ -6614,7 +6612,7 @@ $root.mcs_proto = (function() {
          */
         function AppData(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -6691,9 +6689,9 @@ $root.mcs_proto = (function() {
         AppData.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.AppData();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.AppData();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1: {
                         message.key = reader.string();
@@ -6760,7 +6758,7 @@ $root.mcs_proto = (function() {
         AppData.fromObject = function fromObject(object) {
             if (object instanceof $root.mcs_proto.AppData)
                 return object;
-            var message = new $root.mcs_proto.AppData();
+            let message = new $root.mcs_proto.AppData();
             if (object.key != null)
                 message.key = String(object.key);
             if (object.value != null)
@@ -6780,7 +6778,7 @@ $root.mcs_proto = (function() {
         AppData.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.defaults) {
                 object.key = "";
                 object.value = "";
@@ -6858,7 +6856,7 @@ $root.mcs_proto = (function() {
         function DataMessageStanza(properties) {
             this.appData = [];
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -7040,7 +7038,7 @@ $root.mcs_proto = (function() {
             if (message.token != null && Object.hasOwnProperty.call(message, "token"))
                 writer.uint32(/* id 6, wireType 2 =*/50).string(message.token);
             if (message.appData != null && message.appData.length)
-                for (var i = 0; i < message.appData.length; ++i)
+                for (let i = 0; i < message.appData.length; ++i)
                     $root.mcs_proto.AppData.encode(message.appData[i], writer.uint32(/* id 7, wireType 2 =*/58).fork()).ldelim();
             if (message.fromTrustedServer != null && Object.hasOwnProperty.call(message, "fromTrustedServer"))
                 writer.uint32(/* id 8, wireType 0 =*/64).bool(message.fromTrustedServer);
@@ -7096,9 +7094,9 @@ $root.mcs_proto = (function() {
         DataMessageStanza.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.DataMessageStanza();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.DataMessageStanza();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 2: {
                         message.id = reader.string();
@@ -7229,8 +7227,8 @@ $root.mcs_proto = (function() {
             if (message.appData != null && message.hasOwnProperty("appData")) {
                 if (!Array.isArray(message.appData))
                     return "appData: array expected";
-                for (var i = 0; i < message.appData.length; ++i) {
-                    var error = $root.mcs_proto.AppData.verify(message.appData[i]);
+                for (let i = 0; i < message.appData.length; ++i) {
+                    let error = $root.mcs_proto.AppData.verify(message.appData[i]);
                     if (error)
                         return "appData." + error;
                 }
@@ -7285,7 +7283,7 @@ $root.mcs_proto = (function() {
         DataMessageStanza.fromObject = function fromObject(object) {
             if (object instanceof $root.mcs_proto.DataMessageStanza)
                 return object;
-            var message = new $root.mcs_proto.DataMessageStanza();
+            let message = new $root.mcs_proto.DataMessageStanza();
             if (object.id != null)
                 message.id = String(object.id);
             if (object.from != null)
@@ -7300,7 +7298,7 @@ $root.mcs_proto = (function() {
                 if (!Array.isArray(object.appData))
                     throw TypeError(".mcs_proto.DataMessageStanza.appData: array expected");
                 message.appData = [];
-                for (var i = 0; i < object.appData.length; ++i) {
+                for (let i = 0; i < object.appData.length; ++i) {
                     if (typeof object.appData[i] !== "object")
                         throw TypeError(".mcs_proto.DataMessageStanza.appData: object expected");
                     message.appData[i] = $root.mcs_proto.AppData.fromObject(object.appData[i]);
@@ -7369,7 +7367,7 @@ $root.mcs_proto = (function() {
         DataMessageStanza.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.arrays || options.defaults)
                 object.appData = [];
             if (options.defaults) {
@@ -7384,19 +7382,19 @@ $root.mcs_proto = (function() {
                 object.lastStreamIdReceived = 0;
                 object.regId = "";
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
+                    let long = new $util.Long(0, 0, false);
                     object.deviceUserId = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.deviceUserId = options.longs === String ? "0" : 0;
                 object.ttl = 0;
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
+                    let long = new $util.Long(0, 0, false);
                     object.sent = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.sent = options.longs === String ? "0" : 0;
                 object.queued = 0;
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
+                    let long = new $util.Long(0, 0, false);
                     object.status = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.status = options.longs === String ? "0" : 0;
@@ -7421,7 +7419,7 @@ $root.mcs_proto = (function() {
                 object.token = message.token;
             if (message.appData && message.appData.length) {
                 object.appData = [];
-                for (var j = 0; j < message.appData.length; ++j)
+                for (let j = 0; j < message.appData.length; ++j)
                     object.appData[j] = $root.mcs_proto.AppData.toObject(message.appData[j], options);
             }
             if (message.fromTrustedServer != null && message.hasOwnProperty("fromTrustedServer"))
@@ -7508,7 +7506,7 @@ $root.mcs_proto = (function() {
          */
         function StreamAck(properties) {
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -7567,9 +7565,9 @@ $root.mcs_proto = (function() {
         StreamAck.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.StreamAck();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.StreamAck();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 default:
                     reader.skipType(tag & 7);
@@ -7685,7 +7683,7 @@ $root.mcs_proto = (function() {
         function SelectiveAck(properties) {
             this.id = [];
             if (properties)
-                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
@@ -7723,7 +7721,7 @@ $root.mcs_proto = (function() {
             if (!writer)
                 writer = $Writer.create();
             if (message.id != null && message.id.length)
-                for (var i = 0; i < message.id.length; ++i)
+                for (let i = 0; i < message.id.length; ++i)
                     writer.uint32(/* id 1, wireType 2 =*/10).string(message.id[i]);
             return writer;
         };
@@ -7755,9 +7753,9 @@ $root.mcs_proto = (function() {
         SelectiveAck.decode = function decode(reader, length) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.SelectiveAck();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.SelectiveAck();
             while (reader.pos < end) {
-                var tag = reader.uint32();
+                let tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1: {
                         if (!(message.id && message.id.length))
@@ -7803,7 +7801,7 @@ $root.mcs_proto = (function() {
             if (message.id != null && message.hasOwnProperty("id")) {
                 if (!Array.isArray(message.id))
                     return "id: array expected";
-                for (var i = 0; i < message.id.length; ++i)
+                for (let i = 0; i < message.id.length; ++i)
                     if (!$util.isString(message.id[i]))
                         return "id: string[] expected";
             }
@@ -7821,12 +7819,12 @@ $root.mcs_proto = (function() {
         SelectiveAck.fromObject = function fromObject(object) {
             if (object instanceof $root.mcs_proto.SelectiveAck)
                 return object;
-            var message = new $root.mcs_proto.SelectiveAck();
+            let message = new $root.mcs_proto.SelectiveAck();
             if (object.id) {
                 if (!Array.isArray(object.id))
                     throw TypeError(".mcs_proto.SelectiveAck.id: array expected");
                 message.id = [];
-                for (var i = 0; i < object.id.length; ++i)
+                for (let i = 0; i < object.id.length; ++i)
                     message.id[i] = String(object.id[i]);
             }
             return message;
@@ -7844,12 +7842,12 @@ $root.mcs_proto = (function() {
         SelectiveAck.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
-            var object = {};
+            let object = {};
             if (options.arrays || options.defaults)
                 object.id = [];
             if (message.id && message.id.length) {
                 object.id = [];
-                for (var j = 0; j < message.id.length; ++j)
+                for (let j = 0; j < message.id.length; ++j)
                     object.id[j] = message.id[j];
             }
             return object;
@@ -7887,4 +7885,4 @@ $root.mcs_proto = (function() {
     return mcs_proto;
 })();
 
-module.exports = $root;
+export { $root as default };
