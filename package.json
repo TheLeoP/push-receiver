@@ -16,8 +16,7 @@
     "protos:copy": "cp ./src/protos.* ./dist/",
     "build": "npm run protos:build && tsc && npm run protos:copy",
     "prepublish": "npm run build",
-    "lint": "eslint src --ext .ts",
-    "precommit": "npm run lint && npm run build",
+    "precommit": "npm run build",
     "prepare": "npm run prepublish"
   },
   "repository": {
@@ -42,9 +41,6 @@
   "homepage": "https://github.com/theleop/push-receiver#readme",
   "devDependencies": {
     "@types/node": "^22.8.2",
-    "@typescript-eslint/eslint-plugin": "^8.12.1",
-    "@typescript-eslint/parser": "^8.12.1",
-    "eslint": "^9.13.0",
     "protobufjs-cli": "^1.1.3",
     "typescript": "^5.6.3"
   },
