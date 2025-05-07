@@ -16,6 +16,7 @@
     "protos:build": "npm run protos:convert && npm run protos",
     "protos:copy": "cp ./src/protos.* ./dist/",
     "build": "npm run protos:build && tsc; npm run protos:copy",
+    "build:ts": "tsc",
     "prepublish": "npm run build",
     "precommit": "npm run build",
     "prepare": "npm run prepublish"
