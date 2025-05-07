@@ -1,45 +1,50 @@
 import Long from "long";
 import ProtobufJS from "protobufjs";
-import tls from "tls";
-import registerGCM, { checkIn } from "./gcm";
-import registerFCM from "./fcm";
-import createKeys from "./keys";
-import Parser from "./parser";
-import decrypt from "./utils/decrypt";
-import Logger from "./utils/logger";
-import Protos, { mcs_proto } from "./protos";
-import defer from "./utils/defer";
+import tls, { type TLSSocket } from "tls";
+import registerGCM, { checkIn } from "./gcm.js";
+import registerFCM from "./fcm.js";
+import createKeys from "./keys.js";
+import Parser from "./parser.js";
+import decrypt from "./utils/decrypt.js";
+import { debug, error, setDebug, warn } from "./utils/logger.js";
+import { mcs_proto } from "./protos.js";
+import defer from "./utils/defer.js";
 
-import Emitter from "./emitter";
+import { TypedEventEmitter } from "./emitter.js";
 
-import { Variables, MCSProtoTag } from "./constants";
+import { Variables, MCSProtoTag } from "./constants.js";
 
-import type * as Types from "./types";
+import type * as Types from "./types.js";
 
 export { Types };
 
 ProtobufJS.util.Long = Long;
 ProtobufJS.configure();
 
+const HeartbeatPing = mcs_proto.HeartbeatPing;
+const HeartbeatAck = mcs_proto.HeartbeatAck;
+
 const HOST = "mtalk.google.com";
 const PORT = 5228;
 const MAX_RETRY_TIMEOUT = 15;
 
 interface ClientEvents {
-  ON_MESSAGE_RECEIVED: (data: Types.MessageEnvelope) => void;
-  ON_CREDENTIALS_CHANGE: (data: Types.EventChangeCredentials) => void;
-  ON_CONNECT: (data: void) => void;
-  ON_DISCONNECT: (data: void) => void;
-  ON_READY: (data: void) => void;
-  ON_HEARTBEAT: (data: void) => void;
+  ON_MESSAGE_RECEIVED: [Types.MessageEnvelope];
+  ON_CREDENTIALS_CHANGE: [Types.EventChangeCredentials];
+  ON_CONNECT: [];
+  ON_DISCONNECT: [];
+  ON_READY: [];
+  ON_HEARTBEAT: [];
 }
 
-export default class PushReceiver extends Emitter<ClientEvents> {
-  #config: Types.ClientConfig;
-  #socket: tls.TLSSocket;
+export default class PushReceiver {
+  emmiter = new TypedEventEmitter<ClientEvents>();
+
+  #config: Types.InternalClientConfig;
+  #socket?: TLSSocket;
   #retryCount = 0;
-  #retryTimeout: NodeJS.Timeout;
-  #parser: Parser;
+  #retryTimeout?: NodeJS.Timeout;
+  #parser?: Parser;
   #heartbeatTimer?: NodeJS.Timeout;
   #heartbeatTimeout?: NodeJS.Timeout;
   #streamId = 0;
@@ -53,10 +58,8 @@ export default class PushReceiver extends Emitter<ClientEvents> {
   }
 
   constructor(config: Types.ClientConfig) {
-    super();
-
     this.setDebug(config.debug);
-    Logger.debug("constructor", config);
+    debug("constructor", config);
 
     this.#config = {
       bundleId: "receiver.push.com",
@@ -68,7 +71,7 @@ export default class PushReceiver extends Emitter<ClientEvents> {
       ...config,
     };
 
-    this.persistentIds = this.#config.persistentIds;
+    this.persistentIds = this.#config.persistentIds ?? [];
   }
 
   get whenReady() {
@@ -76,23 +79,26 @@ export default class PushReceiver extends Emitter<ClientEvents> {
   }
 
   setDebug(enabled?: boolean) {
-    Logger.setDebug(enabled);
+    setDebug(enabled);
   }
 
   onNotification(
     listener: (data: Types.MessageEnvelope) => void,
   ): Types.DisposeFunction {
-    return this.on("ON_MESSAGE_RECEIVED", listener);
+    this.emmiter.on("ON_MESSAGE_RECEIVED", listener);
+    return () => this.emmiter.off("ON_MESSAGE_RECEIVED", listener);
   }
 
   onCredentialsChanged(
     listener: (data: Types.EventChangeCredentials) => void,
   ): Types.DisposeFunction {
-    return this.on("ON_CREDENTIALS_CHANGE", listener);
+    this.emmiter.on("ON_CREDENTIALS_CHANGE", listener);
+    return () => this.emmiter.off("ON_CREDENTIALS_CHANGE", listener);
   }
 
   onReady(listener: () => void): Types.DisposeFunction {
-    return this.on("ON_READY", listener);
+    this.emmiter.on("ON_READY", listener);
+    return () => this.emmiter.off("ON_READY", listener);
   }
 
   connect = async (): Promise<void> => {
@@ -100,22 +106,21 @@ export default class PushReceiver extends Emitter<ClientEvents> {
 
     await this.registerIfNeeded();
 
-    Logger.debug("connect");
+    debug("connect");
 
     this.#lastStreamIdReported = -1;
 
-    this.#socket = new tls.TLSSocket(null);
+    this.#socket = tls.connect({ host: HOST, port: PORT, servername: HOST });
     this.#socket.setKeepAlive(true);
     this.#socket.on("connect", () => this.#handleSocketConnect());
     this.#socket.on("close", (hadError: boolean) =>
       this.#handleSocketClose(hadError),
     );
     this.#socket.on("error", (err) => this.#handleSocketError(err));
-    this.#socket.connect({ host: HOST, port: PORT });
 
     this.#parser = new Parser(this.#socket);
-    this.#parser.on("message", (data) => this.#handleMessage(data));
-    this.#parser.on("error", (err) => this.#handleParserError(err));
+    this.#parser.emmiter.on("message", (data) => this.#handleMessage(data));
+    this.#parser.emmiter.on("error", (err) => this.#handleParserError(err));
 
     this.#sendLogin();
 
@@ -137,12 +142,12 @@ export default class PushReceiver extends Emitter<ClientEvents> {
       this.#socket.removeAllListeners();
       if (!hadError) this.#socket.end();
       this.#socket.destroy();
-      this.#socket = null;
+      this.#socket = undefined;
     }
 
     if (this.#parser) {
       this.#parser.destroy();
-      this.#parser = null;
+      this.#parser = undefined;
     }
   };
 
@@ -156,7 +161,6 @@ export default class PushReceiver extends Emitter<ClientEvents> {
 
   checkCredentials(credentials: Types.Credentials) {
     // Structure check
-    if (!credentials) return false;
     if (!credentials.fcm || !credentials.gcm || !credentials.keys) return false;
     if (!credentials.fcm.installation) return false;
     if (!credentials.config) return false;
@@ -172,7 +176,10 @@ export default class PushReceiver extends Emitter<ClientEvents> {
   }
 
   async registerIfNeeded(): Promise<Types.Credentials> {
-    if (this.checkCredentials(this.#config.credentials)) {
+    if (
+      this.#config.credentials &&
+      this.checkCredentials(this.#config.credentials)
+    ) {
       await checkIn(this.#config);
 
       return this.#config.credentials;
@@ -189,14 +196,14 @@ export default class PushReceiver extends Emitter<ClientEvents> {
       config: this.#configMetaData,
     };
 
-    this.emit("ON_CREDENTIALS_CHANGE", {
+    this.emmiter.emit("ON_CREDENTIALS_CHANGE", {
       oldCredentials: this.#config.credentials,
       newCredentials: credentials,
     });
 
     this.#config.credentials = credentials;
 
-    Logger.debug("got credentials", credentials);
+    debug("got credentials", credentials);
 
     return this.#config.credentials;
   }
@@ -234,18 +241,18 @@ export default class PushReceiver extends Emitter<ClientEvents> {
 
   #handleSocketConnect = (): void => {
     this.#retryCount = 0;
-    this.emit("ON_CONNECT");
+    this.emmiter.emit("ON_CONNECT");
     this.#startHeartbeat();
   };
 
   #handleSocketClose = (hadError = false): void => {
-    this.emit("ON_DISCONNECT");
+    this.emmiter.emit("ON_DISCONNECT");
     this.#clearHeartbeat();
     this.#socketRetry(hadError);
   };
 
   #handleSocketError = (err: Error): void => {
-    Logger.error(err);
+    error(err);
     // ignore, the close handler takes care of retry
   };
 
@@ -265,54 +272,53 @@ export default class PushReceiver extends Emitter<ClientEvents> {
   }
 
   #sendHeartbeatPing() {
-    const heartbeatPingRequest: Record<string, unknown> = {};
+    const heartbeatPingRequest: mcs_proto.IHeartbeatPing = {};
 
     if (this.#newStreamIdAvailable()) {
-      heartbeatPingRequest.last_stream_id_received = this.#getStreamId();
+      heartbeatPingRequest.lastStreamIdReceived = this.#getStreamId();
     }
 
-    Logger.debug("Heartbeat send pong", heartbeatPingRequest);
+    debug("Heartbeat send pong", heartbeatPingRequest);
 
-    const HeartbeatPingRequestType = Protos.mcs_proto.HeartbeatPing;
-    const errorMessage = HeartbeatPingRequestType.verify(heartbeatPingRequest);
+    const errorMessage = HeartbeatPing.verify(heartbeatPingRequest);
 
     if (errorMessage) {
       throw new Error(errorMessage);
     }
 
-    const buffer =
-      HeartbeatPingRequestType.encodeDelimited(heartbeatPingRequest).finish();
+    const buffer = HeartbeatPing.encodeDelimited(heartbeatPingRequest).finish();
 
-    Logger.debug("HEARTBEAT sending PING", heartbeatPingRequest);
+    debug("HEARTBEAT sending PING", heartbeatPingRequest);
 
+    if (!this.#socket) throw new Error("socket is nil");
     this.#socket.write(
       Buffer.concat([Buffer.from([MCSProtoTag.kHeartbeatPingTag]), buffer]),
     );
   }
 
-  #sendHeartbeatPong(object) {
-    const heartbeatAckRequest: Record<string, any> = {};
+  #sendHeartbeatPong(object: mcs_proto.IHeartbeatAck) {
+    const heartbeatAckRequest: mcs_proto.IHeartbeatAck = {};
 
     if (this.#newStreamIdAvailable()) {
-      heartbeatAckRequest.last_stream_id_received = this.#getStreamId();
+      heartbeatAckRequest.lastStreamIdReceived = this.#getStreamId();
     }
 
     if (object?.status) {
       heartbeatAckRequest.status = object.status;
     }
 
-    Logger.debug("Heartbeat send pong", heartbeatAckRequest);
+    debug("Heartbeat send pong", heartbeatAckRequest);
 
-    const HeartbeatAckRequestType = Protos.mcs_proto.HeartbeatAck;
-    const errorMessage = HeartbeatAckRequestType.verify(heartbeatAckRequest);
+    const errorMessage = HeartbeatAck.verify(heartbeatAckRequest);
     if (errorMessage) {
       throw new Error(errorMessage);
     }
 
-    const buffer =
-      HeartbeatAckRequestType.encodeDelimited(heartbeatAckRequest).finish();
+    const buffer = HeartbeatAck.encodeDelimited(heartbeatAckRequest).finish();
 
-    Logger.debug("HEARTBEAT sending PONG", heartbeatAckRequest);
+    debug("HEARTBEAT sending PONG", heartbeatAckRequest);
+
+    if (!this.#socket) throw new Error("this.#socket is undefined");
 
     this.#socket.write(
       Buffer.concat([Buffer.from([MCSProtoTag.kHeartbeatAckTag]), buffer]),
@@ -320,8 +326,10 @@ export default class PushReceiver extends Emitter<ClientEvents> {
   }
 
   #sendLogin() {
+    if (!this.#config.credentials) throw new Error("credentials are undefined");
+
     const gcm = this.#config.credentials.gcm;
-    const LoginRequestType = Protos.mcs_proto.LoginRequest;
+    const LoginRequestType = mcs_proto.LoginRequest;
     const hexAndroidId = Long.fromString(gcm.androidId).toString(16);
     const loginRequest: mcs_proto.ILoginRequest = {
       adaptiveHeartbeat: false,
@@ -355,6 +363,7 @@ export default class PushReceiver extends Emitter<ClientEvents> {
 
     const buffer = LoginRequestType.encodeDelimited(loginRequest).finish();
 
+    if (!this.#socket) throw new Error("this.#socket is undefined");
     this.#socket.write(
       Buffer.concat([
         Buffer.from([Variables.kMCSVersion, MCSProtoTag.kLoginRequestTag]),
@@ -371,7 +380,7 @@ export default class PushReceiver extends Emitter<ClientEvents> {
       case MCSProtoTag.kLoginResponseTag:
         // clear persistent ids, as we just sent them to the server while logging in
         this.#config.persistentIds = [];
-        this.emit("ON_READY");
+        this.emmiter.emit("ON_READY");
         this.#startHeartbeat();
         this.#ready.resolve();
         break;
@@ -381,18 +390,18 @@ export default class PushReceiver extends Emitter<ClientEvents> {
         break;
 
       case MCSProtoTag.kHeartbeatPingTag:
-        this.emit("ON_HEARTBEAT");
-        Logger.debug("HEARTBEAT PING", object);
+        this.emmiter.emit("ON_HEARTBEAT");
+        debug("HEARTBEAT PING", object);
         this.#sendHeartbeatPong(object);
         break;
 
       case MCSProtoTag.kHeartbeatAckTag:
-        this.emit("ON_HEARTBEAT");
-        Logger.debug("HEARTBEAT PONG", object);
+        this.emmiter.emit("ON_HEARTBEAT");
+        debug("HEARTBEAT PONG", object);
         break;
 
       case MCSProtoTag.kCloseTag:
-        Logger.debug(
+        debug(
           "Close: Server requested close! message: ",
           JSON.stringify(object),
         );
@@ -400,16 +409,16 @@ export default class PushReceiver extends Emitter<ClientEvents> {
         break;
 
       case MCSProtoTag.kLoginRequestTag:
-        Logger.debug("Login request: message: ", JSON.stringify(object));
+        debug("Login request: message: ", JSON.stringify(object));
         break;
 
       case MCSProtoTag.kIqStanzaTag:
-        Logger.debug("IqStanza: ", JSON.stringify(object));
+        debug("IqStanza: ", JSON.stringify(object));
         // FIXME: If anyone knows what is this and how to respond, please let me know
         break;
 
       default:
-        Logger.error("Unknown message: ", JSON.stringify(object));
+        error("Unknown message: ", JSON.stringify(object));
         return;
 
       // no default
@@ -418,15 +427,22 @@ export default class PushReceiver extends Emitter<ClientEvents> {
     this.#streamId++;
   };
 
-  #handleDataMessage = (object): void => {
-    if (this.persistentIds.includes(object.persistentId)) {
+  #handleDataMessage = (object: mcs_proto.IDataMessageStanza): void => {
+    if (!this.#config.credentials) throw new Error("credentials is undefined");
+
+    if (
+      !object.persistentId ||
+      this.persistentIds.includes(object.persistentId)
+    ) {
       return;
     }
 
     let message;
     try {
-      message = decrypt(object, this.#config.credentials.keys);
+      message = decrypt(object, this.#config.credentials.keys) as Types.Message;
     } catch (error) {
+      if (!(error instanceof Error)) return;
+
       switch (true) {
         case error.message.includes(
           "Unsupported state or unable to authenticate data",
@@ -436,7 +452,7 @@ export default class PushReceiver extends Emitter<ClientEvents> {
           // NOTE(ibash) Periodically we're unable to decrypt notifications. In
           // all cases we've been able to receive future notifications using the
           // same keys. So, we silently drop this notification.
-          Logger.warn(
+          warn(
             "Message dropped as it could not be decrypted: " + error.message,
           );
           return;
@@ -448,15 +464,15 @@ export default class PushReceiver extends Emitter<ClientEvents> {
     // Maintain persistentIds updated with the very last received value
     this.persistentIds.push(object.persistentId);
     // Send notification
-    this.emit("ON_MESSAGE_RECEIVED", {
+    this.emmiter.emit("ON_MESSAGE_RECEIVED", {
       message,
       // Needs to be saved by the client
       persistentId: object.persistentId,
     });
   };
 
-  #handleParserError = (error) => {
-    Logger.error(error);
+  #handleParserError = (err: Error) => {
+    error(err);
     this.#socketRetry();
   };
 }

@@ -1,20 +1,20 @@
 let debugEnabled = false;
 
-export default {
-  setDebug: (enabled?: boolean) => {
-    debugEnabled = Boolean(enabled);
-  },
-  log: (...args: unknown[]): void => {
-    console.log(...args);
-  },
-  debug: (...args: unknown[]): void => {
-    if (debugEnabled) {
-      console.debug(...args);
-    }
-  },
-  warn: (...args: unknown[]): void => {
-    console.warn(...args);
-  },
-  error: console.error,
-};
+export function setDebug(enabled?: boolean) {
+  debugEnabled = Boolean(enabled);
+}
 
+export function log(...args: unknown[]): void {
+  console.log(...args);
+}
+
+export function debug(...args: unknown[]): void {
+  if (!debugEnabled) return;
+  console.debug(...args);
+}
+
+export function warn(...args: unknown[]): void {
+  console.warn(...args);
+}
+
+export const error = console.error;

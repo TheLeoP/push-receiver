@@ -1,33 +1,26 @@
 import { EventEmitter } from "node:events";
 
-export type Unsubscribe = CallableFunction;
+export class TypedEventEmitter<TEvents extends Record<string, any>> {
+  private emitter = new EventEmitter();
 
-interface EmitterEvents {}
-
-export default class ClassWithEmitter<EventMap extends EmitterEvents> {
-  #emitter = new EventEmitter();
-
-  on<K extends keyof EventMap>(
-    eventName: K,
-    listener: EventMap[K],
-  ): Unsubscribe {
-    const handler = (...args: any[]) => {
-      try {
-        return (listener as CallableFunction)(...args);
-      } catch (err: any) {
-        console.error(err);
-      }
-    };
-
-    this.#emitter.on(eventName as string, handler);
-    return () => this.#emitter.off(eventName as string, handler);
+  emit<TEventName extends keyof TEvents & string>(
+    eventName: TEventName,
+    ...eventArg: TEvents[TEventName]
+  ) {
+    this.emitter.emit(eventName, ...(eventArg as []));
   }
 
-  emit<K extends keyof EventMap>(
-    eventName: K,
-    // @ts-expect-error - no reason TODO: Fixme
-    ...args: Parameters<EventMap[K]>
+  on<TEventName extends keyof TEvents & string>(
+    eventName: TEventName,
+    handler: (...eventArg: TEvents[TEventName]) => void,
   ) {
-    this.#emitter.emit(eventName as string, ...args);
+    this.emitter.on(eventName, handler as any);
+  }
+
+  off<TEventName extends keyof TEvents & string>(
+    eventName: TEventName,
+    handler: (...eventArg: TEvents[TEventName]) => void,
+  ) {
+    this.emitter.off(eventName, handler as any);
   }
 }

@@ -1,5 +1,5 @@
 export default function defer<T>(): {
-  promise: Promise<T>;
+  promise: Promise<T | undefined>;
   resolve: (value?: T | PromiseLike<T>) => void;
   reject: (reason?: any) => void;
   isResolved: boolean;
@@ -8,7 +8,7 @@ export default function defer<T>(): {
   let reject: (reason?: any) => void;
   let isResolved = false;
 
-  const promise = new Promise<T>((res, rej) => {
+  const promise = new Promise<T | undefined>((res, rej) => {
     resolve = (value?: T | PromiseLike<T>) => {
       isResolved = true;
       res(value);
@@ -19,5 +19,7 @@ export default function defer<T>(): {
     };
   });
 
+  // @ts-ignore: both `resolve` and `reject` are initialized synchronously in
+  // the Promise constructor
   return { promise, resolve, reject, isResolved };
 }

@@ -155,6 +155,35 @@ export interface ClientConfig {
   firebase: FirebaseConfig;
 }
 
+export interface InternalClientConfig {
+  credentials?: Credentials;
+  persistentIds?: PersistentId[];
+  bundleId: string;
+  chromeId: string;
+  /**
+   * 1 = Windows
+   * 2 = Darwin
+   * 3 = Linux
+   * 4 = Cros
+   * 5 = iOS
+   */
+  chromePlatform?: number;
+  /**
+   * 1 = stable
+   * 2 = beta
+   * 3 = dev
+   * 4 = canary
+   * 5 = unknown
+   */
+  chromeChannel?: number;
+  chromeVersion: string;
+  timeZone?: string;
+  debug?: boolean;
+  vapidKey: string;
+  heartbeatIntervalMs?: number;
+  firebase: FirebaseConfig;
+}
+
 export interface EventChangeCredentials {
   oldCredentials?: Credentials;
   newCredentials: Credentials;

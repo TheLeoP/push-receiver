@@ -1,7 +1,7 @@
 import crypto from "crypto";
-import { escape } from "./utils/base64";
+import { escape } from "./utils/base64.js";
 
-import type * as Types from "./types";
+import type * as Types from "./types.js";
 
 export default function createKeys(): Promise<Types.Keys> {
   return new Promise((resolve, reject) => {
@@ -21,4 +21,3 @@ export default function createKeys(): Promise<Types.Keys> {
     });
   });
 }
-

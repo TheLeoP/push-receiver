@@ -1,5 +1,5 @@
-import request from "./utils/request";
-import type * as Types from "./types";
+import request from "./utils/request.js";
+import type * as Types from "./types.js";
 
 const FCM_API = "https://fcm.googleapis.com/v1/projects/";
 

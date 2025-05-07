@@ -1,11 +1,11 @@
 import Long from "long";
 import { randomUUID } from "crypto";
-import request from "./utils/request";
-import delay from "./utils/timeout";
-import Protos from "./protos";
-import Logger from "./utils/logger";
+import request from "./utils/request.js";
+import delay from "./utils/timeout.js";
+import { checkin_proto } from "./protos.js";
+import { warn } from "./utils/logger.js";
 
-import type * as Types from "./types";
+import type * as Types from "./types.js";
 
 const REGISTER_URL = "https://android.clients.google.com/c2dm/register3";
 const CHECKIN_URL = "https://android.clients.google.com/checkin";
@@ -37,7 +37,7 @@ export async function checkIn(
     })
   ).arrayBuffer();
 
-  const AndroidCheckinResponse = Protos.checkin_proto.AndroidCheckinResponse;
+  const AndroidCheckinResponse = checkin_proto.AndroidCheckinResponse;
   const message = AndroidCheckinResponse.decode(new Uint8Array(body));
   const object = AndroidCheckinResponse.toObject(message, {
     longs: String,
@@ -99,12 +99,12 @@ async function postRegister({
   ).text();
 
   if (response.includes("Error")) {
-    Logger.warn(`Register request has failed with ${response}`);
+    warn(`Register request has failed with ${response}`);
     if (retry >= 5) {
       throw new Error("GCM register has failed");
     }
 
-    Logger.warn(`Retry... ${retry + 1}`);
+    warn(`Retry... ${retry + 1}`);
     await delay(1000);
     return postRegister({ androidId, securityToken, body, retry: retry + 1 });
   }
@@ -114,22 +114,22 @@ async function postRegister({
 
 function prepareCheckinBuffer(config: Types.ClientConfig) {
   const gcm = config.credentials?.gcm;
-  const AndroidCheckinRequest = Protos.checkin_proto.AndroidCheckinRequest;
+  const AndroidCheckinRequest = checkin_proto.AndroidCheckinRequest;
 
-  const payload: Protos.checkin_proto.IAndroidCheckinRequest = {
+  const payload: checkin_proto.IAndroidCheckinRequest = {
     accountCookie: [],
     checkin: {
       cellOperator: "", // Optional
       chromeBuild: {
         platform:
           config.chromePlatform ||
-          Protos.checkin_proto.ChromeBuildProto.Platform.PLATFORM_MAC,
+          checkin_proto.ChromeBuildProto.Platform.PLATFORM_MAC,
         chromeVersion: config.chromeVersion || "63.0.3234.0",
         channel:
           config.chromeChannel ||
-          Protos.checkin_proto.ChromeBuildProto.Channel.CHANNEL_STABLE,
+          checkin_proto.ChromeBuildProto.Channel.CHANNEL_STABLE,
       },
-      type: Protos.checkin_proto.DeviceType.DEVICE_CHROME_BROWSER,
+      type: checkin_proto.DeviceType.DEVICE_CHROME_BROWSER,
       lastCheckinMsec: parseLong(0n), // TODO
       roaming: "", // Optional
       simOperator: "", // Optional

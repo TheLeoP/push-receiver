@@ -1,12 +1,12 @@
 import ProtobufJS from "protobufjs";
-import Logger from "./utils/logger";
+import { debug, error } from "./utils/logger.js";
 import { TLSSocket } from "tls";
-import Protos from "./protos";
-import { Variables, ProcessingState, MCSProtoTag } from "./constants";
+import * as Protos from "./protos.js";
+import { Variables, ProcessingState, MCSProtoTag } from "./constants.js";
 
-import Emitter from "./emitter";
+import { TypedEventEmitter } from "./emitter.js";
 
-import type { DataPacket } from "./types";
+import type { DataPacket } from "./types.js";
 
 // Parser parses wire data from gcm.
 // This takes the role of WaitForData in the chromium connection handler.
@@ -20,11 +20,13 @@ import type { DataPacket } from "./types";
 // ref: https://cs.chromium.org/chromium/src/google_apis/gcm/engine/connection_handler_impl.cc?rcl=dc7c41bc0ee5fee0ed269495dde6b8c40df43e40&l=178
 
 interface ParserEvents {
-  error: (err: Error) => void;
-  message: (data: DataPacket) => void;
+  error: [Error];
+  message: [DataPacket];
 }
 
-export default class Parser extends Emitter<ParserEvents> {
+export default class Parser {
+  emmiter = new TypedEventEmitter<ParserEvents>();
+
   #socket: TLSSocket;
   #state: ProcessingState = ProcessingState.MCS_VERSION_TAG_AND_SIZE;
   #data: Buffer = Buffer.alloc(0);
@@ -34,8 +36,6 @@ export default class Parser extends Emitter<ParserEvents> {
   #isWaitingForData = true;
 
   constructor(socket: TLSSocket) {
-    super();
-
     this.#socket = socket;
     this.#socket.on("data", this.#handleData);
   }
@@ -45,13 +45,13 @@ export default class Parser extends Emitter<ParserEvents> {
     this.#socket.removeListener("data", this.#handleData);
   }
 
-  #emitError(error): void {
+  #emitError(error: Error): void {
     this.destroy();
-    this.emit("error", error);
+    this.emmiter.emit("error", error);
   }
 
-  #handleData = (buffer) => {
-    Logger.debug(`Got data: ${buffer.length}`);
+  #handleData = (buffer: Buffer) => {
+    debug(`Got data: ${buffer.length}`);
     this.#data = Buffer.concat([this.#data, buffer]);
     if (this.#isWaitingForData) {
       this.#isWaitingForData = false;
@@ -60,7 +60,7 @@ export default class Parser extends Emitter<ParserEvents> {
   };
 
   #waitForData() {
-    Logger.debug(`waitForData state: ${this.#state}`);
+    debug(`waitForData state: ${this.#state}`);
 
     let minBytesNeeded = 0;
 
@@ -83,14 +83,14 @@ export default class Parser extends Emitter<ParserEvents> {
     }
 
     if (this.#data.length < minBytesNeeded) {
-      Logger.debug(
+      debug(
         `Waiting for ${minBytesNeeded - this.#data.length} more bytes. Got ${this.#data.length}`,
       );
       this.#isWaitingForData = true;
       return;
     }
 
-    Logger.debug(`Processing MCS data: state == ${this.#state}`);
+    debug(`Processing MCS data: state == ${this.#state}`);
 
     switch (this.#state) {
       case ProcessingState.MCS_VERSION_TAG_AND_SIZE:
@@ -117,7 +117,7 @@ export default class Parser extends Emitter<ParserEvents> {
   #handleGotVersion() {
     const version = this.#data.readInt8(0);
     this.#data = this.#data.slice(1);
-    Logger.debug(`VERSION IS ${version}`);
+    debug(`VERSION IS ${version}`);
 
     if (version < Variables.kMCSVersion && version !== 38) {
       this.#emitError(new Error(`Got wrong version: ${version}`));
@@ -128,7 +128,7 @@ export default class Parser extends Emitter<ParserEvents> {
   #handleGotMessageTag() {
     this.#messageTag = this.#data.readInt8(0);
     this.#data = this.#data.slice(1);
-    Logger.debug(`RECEIVED PROTO OF TYPE ${this.#messageTag}`);
+    debug(`RECEIVED PROTO OF TYPE ${this.#messageTag}`);
   }
 
   #handleGotMessageSize() {
@@ -138,9 +138,12 @@ export default class Parser extends Emitter<ParserEvents> {
     try {
       this.#messageSize = reader.int32();
     } catch (error) {
-      if (error.message.startsWith("index out of range:")) {
+      if (
+        error instanceof Error &&
+        error.message.startsWith("index out of range:")
+      ) {
         incompleteSizePacket = true;
-      } else {
+      } else if (error instanceof Error) {
         this.#emitError(error);
         return;
       }
@@ -159,7 +162,7 @@ export default class Parser extends Emitter<ParserEvents> {
 
     this.#data = this.#data.slice(reader.pos);
 
-    Logger.debug(`Proto size: ${this.#messageSize}`);
+    debug(`Proto size: ${this.#messageSize}`);
 
     if (this.#messageSize > 0) {
       this.#state = ProcessingState.MCS_PROTO_BYTES;
@@ -179,14 +182,14 @@ export default class Parser extends Emitter<ParserEvents> {
     // Messages with no content are valid just use the default protobuf for
     // that tag.
     if (this.#messageSize === 0) {
-      this.emit("message", { tag: this.#messageTag, object: {} });
+      this.emmiter.emit("message", { tag: this.#messageTag, object: {} });
       this.#getNextMessage();
       return;
     }
 
     if (this.#data.length < this.#messageSize) {
       // Continue reading data.
-      Logger.debug(
+      debug(
         `Continuing data read. Buffer size is ${this.#data.length}, expecting ${this.#messageSize}`,
       );
       this.#state = ProcessingState.MCS_PROTO_BYTES;
@@ -205,14 +208,14 @@ export default class Parser extends Emitter<ParserEvents> {
       bytes: Buffer,
     });
 
-    this.emit("message", { tag: this.#messageTag, object: object });
+    this.emmiter.emit("message", { tag: this.#messageTag, object: object });
 
     if (this.#messageTag === MCSProtoTag.kLoginResponseTag) {
       if (this.#handshakeComplete) {
-        Logger.error("Unexpected login response");
+        error("Unexpected login response");
       } else {
         this.#handshakeComplete = true;
-        Logger.debug("GCM Handshake complete.");
+        debug("GCM Handshake complete.");
       }
     }
 
@@ -226,7 +229,7 @@ export default class Parser extends Emitter<ParserEvents> {
     this.#waitForData();
   }
 
-  #buildProtobufFromTag(tag) {
+  #buildProtobufFromTag(tag: number) {
     switch (tag) {
       case MCSProtoTag.kHeartbeatPingTag:
         return Protos.mcs_proto.HeartbeatPing;

@@ -1,23 +1,17 @@
 import crypto from "crypto";
-import ece from "http_ece";
+// @ts-ignore: this library does not include types
+import * as ece from "http_ece";
 
-import type * as Types from "../types";
-
-interface MessageHeader {
-  key: "crypto-key" | "encryption";
-  value: string;
-}
-
-interface EncryptedMessage {
-  appData: MessageHeader[];
-  rawData: Buffer;
-}
+import type * as Types from "../types.js";
+import { mcs_proto } from "../protos.js";
 
 // https://tools.ietf.org/html/draft-ietf-webpush-encryption-03
 export default function decrypt<T = Types.MessageEnvelope>(
-  object: EncryptedMessage,
+  object: mcs_proto.IDataMessageStanza,
   keys: Types.Keys,
 ): T {
+  if (!object.appData) throw new Error("appData is missing");
+
   const cryptoKey = object.appData.find((item) => item.key === "crypto-key");
   if (!cryptoKey) throw new Error("crypto-key is missing");
 

@@ -1,7 +1,7 @@
 import crypto from "crypto";
-import request, { getEndpoint } from "./utils/request";
+import request, { getEndpoint } from "./utils/request.js";
 
-import type * as Types from "./types";
+import type * as Types from "./types.js";
 
 const FCM_API = "https://fcm.googleapis.com/";
 const FCM_REGISTRATION = "https://fcmregistrations.googleapis.com/v1/";

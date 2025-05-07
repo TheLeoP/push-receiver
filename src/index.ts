@@ -1,5 +1,5 @@
-import PushReceiver from "./client";
-import PushSender from "./sender";
+import PushReceiver from "./client.js";
+import PushSender from "./sender.js";
 
 export { PushReceiver, PushSender };
 
