@@ -157,7 +157,7 @@ export interface ClientConfig {
 
 export interface InternalClientConfig {
   credentials?: Credentials;
-  persistentIds?: PersistentId[];
+  persistentIds: PersistentId[];
   bundleId: string;
   chromeId: string;
   /**

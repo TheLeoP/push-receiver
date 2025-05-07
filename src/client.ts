@@ -23,6 +23,7 @@ ProtobufJS.configure();
 
 const HeartbeatPing = mcs_proto.HeartbeatPing;
 const HeartbeatAck = mcs_proto.HeartbeatAck;
+const LoginRequest = mcs_proto.LoginRequest;
 
 const HOST = "mtalk.google.com";
 const PORT = 5228;
@@ -329,7 +330,6 @@ export default class PushReceiver {
     if (!this.#config.credentials) throw new Error("credentials are undefined");
 
     const gcm = this.#config.credentials.gcm;
-    const LoginRequestType = mcs_proto.LoginRequest;
     const hexAndroidId = Long.fromString(gcm.androidId).toString(16);
     const loginRequest: mcs_proto.ILoginRequest = {
       adaptiveHeartbeat: false,
@@ -356,12 +356,12 @@ export default class PushReceiver {
       };
     }
 
-    const errorMessage = LoginRequestType.verify(loginRequest);
+    const errorMessage = LoginRequest.verify(loginRequest);
     if (errorMessage) {
       throw new Error(errorMessage);
     }
 
-    const buffer = LoginRequestType.encodeDelimited(loginRequest).finish();
+    const buffer = LoginRequest.encodeDelimited(loginRequest).finish();
 
     if (!this.#socket) throw new Error("this.#socket is undefined");
     this.#socket.write(
@@ -379,7 +379,7 @@ export default class PushReceiver {
     switch (tag) {
       case MCSProtoTag.kLoginResponseTag:
         // clear persistent ids, as we just sent them to the server while logging in
-        this.#config.persistentIds = [];
+        this.#config.persistentIds.length = 0;
         this.emmiter.emit("ON_READY");
         this.#startHeartbeat();
         this.#ready.resolve();
