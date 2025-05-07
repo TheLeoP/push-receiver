@@ -9,9 +9,11 @@ const FCM_INSTALLATION = "https://firebaseinstallations.googleapis.com/v1/";
 const AUTH_VERSION = "FIS_v2";
 const SDK_VERSION = "w:0.6.6";
 
-// TODO: FIXME it is optional to send it but better to implement proper heatbeat in the future
-const getEmptyHeatbeat = () =>
-  btoa(JSON.stringify({ heartbeats: [], version: 2 })).toString();
+// TODO: FIXME it is optional to send it but better to implement proper heartbeat in the future
+const getEmptyHeartbeat = () =>
+  Buffer.from(JSON.stringify({ heartbeats: [], version: 2 })).toString(
+    "base64",
+  );
 
 function generateFirebaseFID() {
   // A valid FID has exactly 22 base64 characters, which is 132 bits, or 16.5
@@ -37,7 +39,7 @@ function encodeBase64URL(value: string): string {
 //         method: 'POST',
 //         headers: new Headers({
 //             Authorization: `${AUTH_VERSION} ${fcmData.refreshToken}`,
-//             'x-firebase-client': getEmptyHeatbeat(),
+//             'x-firebase-client': getEmptyHeartbeat(),
 //         }),
 //         body: JSON.stringify({
 //             installation: {
@@ -58,7 +60,7 @@ export async function installFCM(
     {
       method: "POST",
       headers: {
-        "x-firebase-client": getEmptyHeatbeat(),
+        "x-firebase-client": getEmptyHeartbeat(),
         "x-goog-api-key": config.firebase.apiKey,
       },
       body: JSON.stringify({
