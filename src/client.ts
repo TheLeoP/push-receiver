@@ -24,6 +24,8 @@ ProtobufJS.configure();
 const HeartbeatPing = mcs_proto.HeartbeatPing;
 const HeartbeatAck = mcs_proto.HeartbeatAck;
 const LoginRequest = mcs_proto.LoginRequest;
+const SelectiveAck = mcs_proto.SelectiveAck;
+const DataMessageStanza = mcs_proto.DataMessageStanza;
 
 const HOST = "mtalk.google.com";
 const PORT = 5228;
@@ -113,15 +115,15 @@ export default class PushReceiver {
 
     this.#socket = tls.connect({ host: HOST, port: PORT, servername: HOST });
     this.#socket.setKeepAlive(true);
-    this.#socket.on("connect", () => this.#handleSocketConnect());
+    this.#socket.on("connect", this.#handleSocketConnect);
     this.#socket.on("close", (hadError: boolean) =>
       this.#handleSocketClose(hadError),
     );
-    this.#socket.on("error", (err) => this.#handleSocketError(err));
+    this.#socket.on("error", this.#handleSocketError);
 
     this.#parser = new Parser(this.#socket);
-    this.#parser.emmiter.on("message", (data) => this.#handleMessage(data));
-    this.#parser.emmiter.on("error", (err) => this.#handleParserError(err));
+    this.#parser.emmiter.on("message", this.#handleMessage);
+    this.#parser.emmiter.on("error", this.#handleParserError);
 
     this.#sendLogin();
 
@@ -376,6 +378,25 @@ export default class PushReceiver {
     // any message will reset the client side heartbeat timeout.
     this.#startHeartbeat();
 
+    const persistentId =
+      object.persistentId && typeof object.persistentId === "string"
+        ? object.persistentId
+        : undefined;
+    const lastStreamIdReceived =
+      object.lastStreamIdReceived &&
+      typeof object.lastStreamIdReceived === "number"
+        ? object.lastStreamIdReceived
+        : undefined;
+
+    if (lastStreamIdReceived) {
+      // TODO(TheLeoP): remove all outgoing/incoming messages from the
+      // outgoing/incoming queue(database?) with id smaller that
+      // `lastStreamIdReceived` (currently there is no such implementation)
+    }
+
+    // TODO(TheLeoP): send IqStanzaTag message if necessary
+    // https://source.chromium.org/chromium/chromium/src/+/main:google_apis/gcm/engine/mcs_client.cc;l=681;drc=662daa264bb05fe250ce6102be8038dc722182e4
+
     switch (tag) {
       case MCSProtoTag.kLoginResponseTag:
         // clear persistent ids, as we just sent them to the server while logging in
@@ -386,13 +407,15 @@ export default class PushReceiver {
         break;
 
       case MCSProtoTag.kDataMessageStanzaTag:
-        this.#handleDataMessage(object);
+        this.#handleDataMessage(
+          object as unknown as mcs_proto.IDataMessageStanza,
+        );
         break;
 
       case MCSProtoTag.kHeartbeatPingTag:
         this.emmiter.emit("ON_HEARTBEAT");
         debug("HEARTBEAT PING", object);
-        this.#sendHeartbeatPong(object);
+        this.#sendHeartbeatPong(object as unknown as mcs_proto.IHeartbeatAck);
         break;
 
       case MCSProtoTag.kHeartbeatAckTag:
@@ -401,24 +424,49 @@ export default class PushReceiver {
         break;
 
       case MCSProtoTag.kCloseTag:
-        debug(
-          "Close: Server requested close! message: ",
-          JSON.stringify(object),
-        );
+        debug("Close: Server requested close! message: ", object);
         this.#handleSocketClose();
         break;
 
       case MCSProtoTag.kLoginRequestTag:
-        debug("Login request: message: ", JSON.stringify(object));
+        debug("Login request: message: ", object);
         break;
 
       case MCSProtoTag.kIqStanzaTag:
-        debug("IqStanza: ", JSON.stringify(object));
-        // FIXME: If anyone knows what is this and how to respond, please let me know
+        debug("IqStanza: ", object);
+        const stanza = object as unknown as mcs_proto.IIqStanza;
+        const extension = stanza.extension;
+        if (!extension) return debug("Received invalid iq stanza extension");
+
+        const selectiveAck = 12;
+        const streamAck = 13;
+        switch (extension.id) {
+          case selectiveAck: {
+            // TODO(TheLeoP): this is throwing an error, only read if not empty?
+            // const selectiveAck = SelectiveAck.decodeDelimited(extension.data);
+
+            // TODO(TheLeoP):
+            // https://source.chromium.org/chromium/chromium/src/+/main:google_apis/gcm/engine/mcs_client.cc;l=821;drc=662daa264bb05fe250ce6102be8038dc722182e4
+
+            break;
+          }
+          case streamAck: {
+            // TODO(TheLeoP): the following comment is copied verbatim from the
+            // chromium code-base. Does it apply to us?
+
+            // Do nothing. The last received stream id is always processed if it's
+            // present.
+            break;
+          }
+          default: {
+            debug("Received invalid iq stanza extension");
+            break;
+          }
+        }
         break;
 
       default:
-        error("Unknown message: ", JSON.stringify(object));
+        error("Unknown message: ", object);
         return;
 
       // no default
@@ -429,46 +477,119 @@ export default class PushReceiver {
 
   #handleDataMessage = (object: mcs_proto.IDataMessageStanza): void => {
     if (!this.#config.credentials) throw new Error("credentials is undefined");
+    if (!object.appData)
+      throw new Error("incoming message does not have appData");
 
     if (
       !object.persistentId ||
       this.persistentIds.includes(object.persistentId)
-    ) {
+    )
+      return;
+
+    debug("handleDataMessage");
+    debug(object);
+
+    // The category of messages intended for the GCM client itself from MCS.
+    const MCS_CATEGORY = "com.google.android.gsf.gtalkservice";
+    if (object.category === MCS_CATEGORY) {
+      // TODO(TheLeoP): does this actually work? Is it needed? This is implemented on the chromium code
+
+      const kIdleNotification = "IdleNotification";
+      if (!!object.appData.find((item) => item.key === kIdleNotification)) {
+        const response: mcs_proto.IDataMessageStanza = {
+          // The from field for messages originating in the GCM client.
+          from: "gcm@android.com",
+          category: MCS_CATEGORY,
+          sent: Long.fromString(Date.now().toString()), // TODO(TheLeoP): now timestamp. What format?
+          ttl: 0,
+          appData: [
+            {
+              key: kIdleNotification,
+              value: "false",
+            },
+          ],
+        };
+        const err = DataMessageStanza.verify(response);
+        if (err) throw new Error(err);
+        const buffer = DataMessageStanza.encodeDelimited(response).finish();
+
+        if (!this.#socket) throw new Error("socket is nil");
+        this.#socket.write(
+          Buffer.concat([
+            Buffer.from([MCSProtoTag.kDataMessageStanzaTag]),
+            buffer,
+          ]),
+        );
+      }
+
       return;
     }
 
-    let message;
-    try {
-      message = decrypt(object, this.#config.credentials.keys) as Types.Message;
-    } catch (error) {
-      if (!(error instanceof Error)) return;
+    const isEncrypted =
+      !!object.appData.find((item) => item.key === "encryption") &&
+      !!object.appData.find((item) => item.key === "crypto-key") &&
+      object.rawData &&
+      object.rawData.length > 0;
+    if (isEncrypted) {
+      let message: Types.Message;
+      try {
+        message = decrypt<Types.Message>(object, this.#config.credentials.keys);
+      } catch (error) {
+        if (!(error instanceof Error)) return;
 
-      switch (true) {
-        case error.message.includes(
-          "Unsupported state or unable to authenticate data",
-        ):
-        case error.message.includes("crypto-key is missing"):
-        case error.message.includes("salt is missing"):
-          // NOTE(ibash) Periodically we're unable to decrypt notifications. In
-          // all cases we've been able to receive future notifications using the
-          // same keys. So, we silently drop this notification.
-          warn(
-            "Message dropped as it could not be decrypted: " + error.message,
-          );
-          return;
-        default:
-          throw error;
+        switch (true) {
+          case error.message.includes(
+            "Unsupported state or unable to authenticate data",
+          ):
+          case error.message.includes("crypto-key is missing"):
+          case error.message.includes("salt is missing"):
+            warn(
+              "Message dropped as it could not be decrypted: " + error.message,
+            );
+            return;
+          default:
+            throw error;
+        }
       }
+
+      // Maintain persistentIds updated with the very last received value
+      this.persistentIds.push(object.persistentId);
+      // Send notification
+      this.emmiter.emit("ON_MESSAGE_RECEIVED", {
+        message,
+        // Needs to be saved by the client
+        persistentId: object.persistentId,
+      });
+      return;
     }
 
-    // Maintain persistentIds updated with the very last received value
-    this.persistentIds.push(object.persistentId);
-    // Send notification
-    this.emmiter.emit("ON_MESSAGE_RECEIVED", {
-      message,
-      // Needs to be saved by the client
-      persistentId: object.persistentId,
-    });
+    // TODO(TheLeoP): for some reason, push messages contain neither of this types, so it should be unknown
+    const messageType = (object.appData.find(
+      (item) => item.key === "message_type",
+    )?.value ?? "unknown") as
+      | "delete_message"
+      | "send_error"
+      | "gcm"
+      | "unknown"
+      | undefined;
+    // TODO(TheLeoP): it looks like this needs to be done before trying to
+    // decrypt the message and only if the messageType is gcm, but gcm
+    // messages do not contain a message_type header. Why? Does it maybe have
+    // to do with the advertised version?
+    debug("messageType", messageType);
+
+    switch (messageType) {
+      case "delete_message": {
+        // TODO(TheLeoP): notify someone? the chromium codebase seems not to do anything
+        // meaningful in this case (?
+        break;
+      }
+      case "send_error": {
+        // TODO(TheLeoP): notify someone? the chromium codebase seems not to do anything
+        // meaningful in this case (?
+        break;
+      }
+    }
   };
 
   #handleParserError = (err: Error) => {

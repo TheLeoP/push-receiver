@@ -110,9 +110,9 @@ export interface MessageEnvelope {
   persistentId: string;
 }
 
-export interface DataPacket<T = any> {
+export interface DataPacket {
   tag: number;
-  object: T;
+  object: Record<string, unknown>;
 }
 
 export interface FirebaseConfig {

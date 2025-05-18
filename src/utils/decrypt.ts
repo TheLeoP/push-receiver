@@ -4,21 +4,16 @@ import * as ece from "http_ece";
 
 import type * as Types from "../types.js";
 import { mcs_proto } from "../protos.js";
-import { debug } from "./logger.js";
 
 // https://tools.ietf.org/html/draft-ietf-webpush-encryption-03
-export default function decrypt<T = Types.MessageEnvelope>(
+export default function decrypt<T>(
   object: mcs_proto.IDataMessageStanza,
   keys: Types.Keys,
 ): T {
   if (!object.appData) throw new Error("appData is missing");
 
   const cryptoKey = object.appData.find((item) => item.key === "crypto-key");
-  if (!cryptoKey) {
-    debug(object);
-    debug(JSON.stringify(object));
-    throw new Error("crypto-key is missing");
-  }
+  if (!cryptoKey) throw new Error("crypto-key is missing");
 
   const salt = object.appData.find((item) => item.key === "encryption");
   if (!salt) throw new Error("salt is missing");
@@ -34,6 +29,8 @@ export default function decrypt<T = Types.MessageEnvelope>(
     salt: salt.value.slice(5),
   };
   const decrypted = ece.decrypt(object.rawData, params);
+  const out = JSON.parse(decrypted);
+  if (!out) throw new Error("couldn't parse decrypted object");
 
-  return JSON.parse(decrypted);
+  return out;
 }

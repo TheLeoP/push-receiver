@@ -208,7 +208,7 @@ export default class Parser {
       bytes: Buffer,
     });
 
-    this.emmiter.emit("message", { tag: this.#messageTag, object: object });
+    this.emmiter.emit("message", { tag: this.#messageTag, object });
 
     if (this.#messageTag === MCSProtoTag.kLoginResponseTag) {
       if (this.#handshakeComplete) {
