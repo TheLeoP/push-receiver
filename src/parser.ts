@@ -116,7 +116,7 @@ export default class Parser {
 
   #handleGotVersion() {
     const version = this.#data.readInt8(0);
-    this.#data = this.#data.slice(1);
+    this.#data = this.#data.subarray(1);
     debug(`VERSION IS ${version}`);
 
     if (version < Variables.kMCSVersion && version !== 38) {
@@ -127,7 +127,7 @@ export default class Parser {
 
   #handleGotMessageTag() {
     this.#messageTag = this.#data.readInt8(0);
-    this.#data = this.#data.slice(1);
+    this.#data = this.#data.subarray(1);
     debug(`RECEIVED PROTO OF TYPE ${this.#messageTag}`);
   }
 
@@ -160,7 +160,7 @@ export default class Parser {
       return;
     }
 
-    this.#data = this.#data.slice(reader.pos);
+    this.#data = this.#data.subarray(reader.pos);
 
     debug(`Proto size: ${this.#messageSize}`);
 
@@ -197,10 +197,10 @@ export default class Parser {
       return;
     }
 
-    const buffer = this.#data.slice(0, this.#messageSize);
+    const buffer = this.#data.subarray(0, this.#messageSize);
     const message = protobuf.decode(buffer);
 
-    this.#data = this.#data.slice(this.#messageSize);
+    this.#data = this.#data.subarray(this.#messageSize);
 
     const object = protobuf.toObject(message, {
       longs: String,

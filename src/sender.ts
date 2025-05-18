@@ -33,7 +33,7 @@ export default class PushSender {
   #projectId: string;
   #privateKey: string;
   #clientEmail: string;
-  #accessToken: GoogleOAuthAccessToken & { generated_at: number };
+  #accessToken: (GoogleOAuthAccessToken & { generated_at: number }) | undefined;
 
   constructor(serviceAccount: ServiceAccount) {
     this.#projectId = serviceAccount.project_id;
