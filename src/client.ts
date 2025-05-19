@@ -271,7 +271,7 @@ export default class PushReceiver {
   }
 
   #newStreamIdAvailable(): boolean {
-    return this.#lastStreamIdReported != this.#streamId;
+    return this.#lastStreamIdReported !== this.#streamId;
   }
 
   #sendHeartbeatPing() {
