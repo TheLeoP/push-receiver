@@ -38,7 +38,7 @@ $root.checkin_proto = (function() {
         function ChromeBuildProto(properties) {
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
+                    if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         }
 
@@ -87,9 +87,13 @@ $root.checkin_proto = (function() {
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        ChromeBuildProto.encode = function encode(message, writer) {
+        ChromeBuildProto.encode = function encode(message, writer, q) {
             if (!writer)
                 writer = $Writer.create();
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             if (message.platform != null && Object.hasOwnProperty.call(message, "platform"))
                 writer.uint32(/* id 1, wireType 0 =*/8).int32(message.platform);
             if (message.chromeVersion != null && Object.hasOwnProperty.call(message, "chromeVersion"))
@@ -109,7 +113,7 @@ $root.checkin_proto = (function() {
          * @returns {$protobuf.Writer} Writer
          */
         ChromeBuildProto.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
+            return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
         };
 
         /**
@@ -123,12 +127,18 @@ $root.checkin_proto = (function() {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        ChromeBuildProto.decode = function decode(reader, length) {
+        ChromeBuildProto.decode = function decode(reader, length, error, long) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
+            if (long === undefined)
+                long = 0;
+            if (long > $Reader.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var end = length === undefined ? reader.len : reader.pos + length, message = new $root.checkin_proto.ChromeBuildProto();
             while (reader.pos < end) {
                 var tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.platform = reader.int32();
@@ -143,7 +153,7 @@ $root.checkin_proto = (function() {
                         break;
                     }
                 default:
-                    reader.skipType(tag & 7);
+                    reader.skipType(tag & 7, long);
                     break;
                 }
             }
@@ -174,10 +184,14 @@ $root.checkin_proto = (function() {
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        ChromeBuildProto.verify = function verify(message) {
+        ChromeBuildProto.verify = function verify(message, long) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
-            if (message.platform != null && message.hasOwnProperty("platform"))
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                return "maximum nesting depth exceeded";
+            if (message.platform != null && Object.hasOwnProperty.call(message, "platform"))
                 switch (message.platform) {
                 default:
                     return "platform: enum value expected";
@@ -189,10 +203,10 @@ $root.checkin_proto = (function() {
                 case 6:
                     break;
                 }
-            if (message.chromeVersion != null && message.hasOwnProperty("chromeVersion"))
+            if (message.chromeVersion != null && Object.hasOwnProperty.call(message, "chromeVersion"))
                 if (!$util.isString(message.chromeVersion))
                     return "chromeVersion: string expected";
-            if (message.channel != null && message.hasOwnProperty("channel"))
+            if (message.channel != null && Object.hasOwnProperty.call(message, "channel"))
                 switch (message.channel) {
                 default:
                     return "channel: enum value expected";
@@ -214,9 +228,15 @@ $root.checkin_proto = (function() {
          * @param {Object.<string,*>} object Plain object
          * @returns {checkin_proto.ChromeBuildProto} ChromeBuildProto
          */
-        ChromeBuildProto.fromObject = function fromObject(object) {
+        ChromeBuildProto.fromObject = function fromObject(object, long) {
             if (object instanceof $root.checkin_proto.ChromeBuildProto)
                 return object;
+            if (!$util.isObject(object))
+                throw TypeError(".checkin_proto.ChromeBuildProto: object expected");
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var message = new $root.checkin_proto.ChromeBuildProto();
             switch (object.platform) {
             default:
@@ -292,20 +312,24 @@ $root.checkin_proto = (function() {
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        ChromeBuildProto.toObject = function toObject(message, options) {
+        ChromeBuildProto.toObject = function toObject(message, options, q) {
             if (!options)
                 options = {};
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             var object = {};
             if (options.defaults) {
                 object.platform = options.enums === String ? "PLATFORM_WIN" : 1;
                 object.chromeVersion = "";
                 object.channel = options.enums === String ? "CHANNEL_STABLE" : 1;
             }
-            if (message.platform != null && message.hasOwnProperty("platform"))
+            if (message.platform != null && Object.hasOwnProperty.call(message, "platform"))
                 object.platform = options.enums === String ? $root.checkin_proto.ChromeBuildProto.Platform[message.platform] === undefined ? message.platform : $root.checkin_proto.ChromeBuildProto.Platform[message.platform] : message.platform;
-            if (message.chromeVersion != null && message.hasOwnProperty("chromeVersion"))
+            if (message.chromeVersion != null && Object.hasOwnProperty.call(message, "chromeVersion"))
                 object.chromeVersion = message.chromeVersion;
-            if (message.channel != null && message.hasOwnProperty("channel"))
+            if (message.channel != null && Object.hasOwnProperty.call(message, "channel"))
                 object.channel = options.enums === String ? $root.checkin_proto.ChromeBuildProto.Channel[message.channel] === undefined ? message.channel : $root.checkin_proto.ChromeBuildProto.Channel[message.channel] : message.channel;
             return object;
         };
@@ -407,7 +431,7 @@ $root.checkin_proto = (function() {
         function AndroidCheckinProto(properties) {
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
+                    if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         }
 
@@ -488,9 +512,13 @@ $root.checkin_proto = (function() {
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        AndroidCheckinProto.encode = function encode(message, writer) {
+        AndroidCheckinProto.encode = function encode(message, writer, q) {
             if (!writer)
                 writer = $Writer.create();
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             if (message.lastCheckinMsec != null && Object.hasOwnProperty.call(message, "lastCheckinMsec"))
                 writer.uint32(/* id 2, wireType 0 =*/16).int64(message.lastCheckinMsec);
             if (message.cellOperator != null && Object.hasOwnProperty.call(message, "cellOperator"))
@@ -504,7 +532,7 @@ $root.checkin_proto = (function() {
             if (message.type != null && Object.hasOwnProperty.call(message, "type"))
                 writer.uint32(/* id 12, wireType 0 =*/96).int32(message.type);
             if (message.chromeBuild != null && Object.hasOwnProperty.call(message, "chromeBuild"))
-                $root.checkin_proto.ChromeBuildProto.encode(message.chromeBuild, writer.uint32(/* id 13, wireType 2 =*/106).fork()).ldelim();
+                $root.checkin_proto.ChromeBuildProto.encode(message.chromeBuild, writer.uint32(/* id 13, wireType 2 =*/106).fork(), q + 1).ldelim();
             return writer;
         };
 
@@ -518,7 +546,7 @@ $root.checkin_proto = (function() {
          * @returns {$protobuf.Writer} Writer
          */
         AndroidCheckinProto.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
+            return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
         };
 
         /**
@@ -532,12 +560,18 @@ $root.checkin_proto = (function() {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        AndroidCheckinProto.decode = function decode(reader, length) {
+        AndroidCheckinProto.decode = function decode(reader, length, error, long) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
+            if (long === undefined)
+                long = 0;
+            if (long > $Reader.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var end = length === undefined ? reader.len : reader.pos + length, message = new $root.checkin_proto.AndroidCheckinProto();
             while (reader.pos < end) {
                 var tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 2: {
                         message.lastCheckinMsec = reader.int64();
@@ -564,11 +598,11 @@ $root.checkin_proto = (function() {
                         break;
                     }
                 case 13: {
-                        message.chromeBuild = $root.checkin_proto.ChromeBuildProto.decode(reader, reader.uint32());
+                        message.chromeBuild = $root.checkin_proto.ChromeBuildProto.decode(reader, reader.uint32(), undefined, long + 1);
                         break;
                     }
                 default:
-                    reader.skipType(tag & 7);
+                    reader.skipType(tag & 7, long);
                     break;
                 }
             }
@@ -599,25 +633,29 @@ $root.checkin_proto = (function() {
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        AndroidCheckinProto.verify = function verify(message) {
+        AndroidCheckinProto.verify = function verify(message, long) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
-            if (message.lastCheckinMsec != null && message.hasOwnProperty("lastCheckinMsec"))
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                return "maximum nesting depth exceeded";
+            if (message.lastCheckinMsec != null && Object.hasOwnProperty.call(message, "lastCheckinMsec"))
                 if (!$util.isInteger(message.lastCheckinMsec) && !(message.lastCheckinMsec && $util.isInteger(message.lastCheckinMsec.low) && $util.isInteger(message.lastCheckinMsec.high)))
                     return "lastCheckinMsec: integer|Long expected";
-            if (message.cellOperator != null && message.hasOwnProperty("cellOperator"))
+            if (message.cellOperator != null && Object.hasOwnProperty.call(message, "cellOperator"))
                 if (!$util.isString(message.cellOperator))
                     return "cellOperator: string expected";
-            if (message.simOperator != null && message.hasOwnProperty("simOperator"))
+            if (message.simOperator != null && Object.hasOwnProperty.call(message, "simOperator"))
                 if (!$util.isString(message.simOperator))
                     return "simOperator: string expected";
-            if (message.roaming != null && message.hasOwnProperty("roaming"))
+            if (message.roaming != null && Object.hasOwnProperty.call(message, "roaming"))
                 if (!$util.isString(message.roaming))
                     return "roaming: string expected";
-            if (message.userNumber != null && message.hasOwnProperty("userNumber"))
+            if (message.userNumber != null && Object.hasOwnProperty.call(message, "userNumber"))
                 if (!$util.isInteger(message.userNumber))
                     return "userNumber: integer expected";
-            if (message.type != null && message.hasOwnProperty("type"))
+            if (message.type != null && Object.hasOwnProperty.call(message, "type"))
                 switch (message.type) {
                 default:
                     return "type: enum value expected";
@@ -627,8 +665,8 @@ $root.checkin_proto = (function() {
                 case 4:
                     break;
                 }
-            if (message.chromeBuild != null && message.hasOwnProperty("chromeBuild")) {
-                var error = $root.checkin_proto.ChromeBuildProto.verify(message.chromeBuild);
+            if (message.chromeBuild != null && Object.hasOwnProperty.call(message, "chromeBuild")) {
+                var error = $root.checkin_proto.ChromeBuildProto.verify(message.chromeBuild, long + 1);
                 if (error)
                     return "chromeBuild." + error;
             }
@@ -643,13 +681,19 @@ $root.checkin_proto = (function() {
          * @param {Object.<string,*>} object Plain object
          * @returns {checkin_proto.AndroidCheckinProto} AndroidCheckinProto
          */
-        AndroidCheckinProto.fromObject = function fromObject(object) {
+        AndroidCheckinProto.fromObject = function fromObject(object, long) {
             if (object instanceof $root.checkin_proto.AndroidCheckinProto)
                 return object;
+            if (!$util.isObject(object))
+                throw TypeError(".checkin_proto.AndroidCheckinProto: object expected");
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var message = new $root.checkin_proto.AndroidCheckinProto();
             if (object.lastCheckinMsec != null)
                 if ($util.Long)
-                    (message.lastCheckinMsec = $util.Long.fromValue(object.lastCheckinMsec)).unsigned = false;
+                    message.lastCheckinMsec = $util.Long.fromValue(object.lastCheckinMsec, false);
                 else if (typeof object.lastCheckinMsec === "string")
                     message.lastCheckinMsec = parseInt(object.lastCheckinMsec, 10);
                 else if (typeof object.lastCheckinMsec === "number")
@@ -689,9 +733,9 @@ $root.checkin_proto = (function() {
                 break;
             }
             if (object.chromeBuild != null) {
-                if (typeof object.chromeBuild !== "object")
+                if (!$util.isObject(object.chromeBuild))
                     throw TypeError(".checkin_proto.AndroidCheckinProto.chromeBuild: object expected");
-                message.chromeBuild = $root.checkin_proto.ChromeBuildProto.fromObject(object.chromeBuild);
+                message.chromeBuild = $root.checkin_proto.ChromeBuildProto.fromObject(object.chromeBuild, long + 1);
             }
             return message;
         };
@@ -705,16 +749,20 @@ $root.checkin_proto = (function() {
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        AndroidCheckinProto.toObject = function toObject(message, options) {
+        AndroidCheckinProto.toObject = function toObject(message, options, q) {
             if (!options)
                 options = {};
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             var object = {};
             if (options.defaults) {
                 if ($util.Long) {
                     var long = new $util.Long(0, 0, false);
-                    object.lastCheckinMsec = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    object.lastCheckinMsec = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : typeof BigInt !== "undefined" && options.longs === BigInt ? long.toBigInt() : long;
                 } else
-                    object.lastCheckinMsec = options.longs === String ? "0" : 0;
+                    object.lastCheckinMsec = options.longs === String ? "0" : typeof BigInt !== "undefined" && options.longs === BigInt ? BigInt("0") : 0;
                 object.cellOperator = "";
                 object.simOperator = "";
                 object.roaming = "";
@@ -722,23 +770,25 @@ $root.checkin_proto = (function() {
                 object.type = options.enums === String ? "DEVICE_ANDROID_OS" : 1;
                 object.chromeBuild = null;
             }
-            if (message.lastCheckinMsec != null && message.hasOwnProperty("lastCheckinMsec"))
-                if (typeof message.lastCheckinMsec === "number")
+            if (message.lastCheckinMsec != null && Object.hasOwnProperty.call(message, "lastCheckinMsec"))
+                if (typeof BigInt !== "undefined" && options.longs === BigInt)
+                    object.lastCheckinMsec = typeof message.lastCheckinMsec === "number" ? BigInt(message.lastCheckinMsec) : $util.Long.fromBits(message.lastCheckinMsec.low >>> 0, message.lastCheckinMsec.high >>> 0, false).toBigInt();
+                else if (typeof message.lastCheckinMsec === "number")
                     object.lastCheckinMsec = options.longs === String ? String(message.lastCheckinMsec) : message.lastCheckinMsec;
                 else
                     object.lastCheckinMsec = options.longs === String ? $util.Long.prototype.toString.call(message.lastCheckinMsec) : options.longs === Number ? new $util.LongBits(message.lastCheckinMsec.low >>> 0, message.lastCheckinMsec.high >>> 0).toNumber() : message.lastCheckinMsec;
-            if (message.cellOperator != null && message.hasOwnProperty("cellOperator"))
+            if (message.cellOperator != null && Object.hasOwnProperty.call(message, "cellOperator"))
                 object.cellOperator = message.cellOperator;
-            if (message.simOperator != null && message.hasOwnProperty("simOperator"))
+            if (message.simOperator != null && Object.hasOwnProperty.call(message, "simOperator"))
                 object.simOperator = message.simOperator;
-            if (message.roaming != null && message.hasOwnProperty("roaming"))
+            if (message.roaming != null && Object.hasOwnProperty.call(message, "roaming"))
                 object.roaming = message.roaming;
-            if (message.userNumber != null && message.hasOwnProperty("userNumber"))
+            if (message.userNumber != null && Object.hasOwnProperty.call(message, "userNumber"))
                 object.userNumber = message.userNumber;
-            if (message.type != null && message.hasOwnProperty("type"))
+            if (message.type != null && Object.hasOwnProperty.call(message, "type"))
                 object.type = options.enums === String ? $root.checkin_proto.DeviceType[message.type] === undefined ? message.type : $root.checkin_proto.DeviceType[message.type] : message.type;
-            if (message.chromeBuild != null && message.hasOwnProperty("chromeBuild"))
-                object.chromeBuild = $root.checkin_proto.ChromeBuildProto.toObject(message.chromeBuild, options);
+            if (message.chromeBuild != null && Object.hasOwnProperty.call(message, "chromeBuild"))
+                object.chromeBuild = $root.checkin_proto.ChromeBuildProto.toObject(message.chromeBuild, options, q + 1);
             return object;
         };
 
@@ -810,7 +860,7 @@ $root.checkin_proto = (function() {
         function GservicesSetting(properties) {
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
+                    if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         }
 
@@ -851,9 +901,13 @@ $root.checkin_proto = (function() {
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        GservicesSetting.encode = function encode(message, writer) {
+        GservicesSetting.encode = function encode(message, writer, q) {
             if (!writer)
                 writer = $Writer.create();
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.name);
             writer.uint32(/* id 2, wireType 2 =*/18).bytes(message.value);
             return writer;
@@ -869,7 +923,7 @@ $root.checkin_proto = (function() {
          * @returns {$protobuf.Writer} Writer
          */
         GservicesSetting.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
+            return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
         };
 
         /**
@@ -883,12 +937,18 @@ $root.checkin_proto = (function() {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        GservicesSetting.decode = function decode(reader, length) {
+        GservicesSetting.decode = function decode(reader, length, error, long) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
+            if (long === undefined)
+                long = 0;
+            if (long > $Reader.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var end = length === undefined ? reader.len : reader.pos + length, message = new $root.checkin_proto.GservicesSetting();
             while (reader.pos < end) {
                 var tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.name = reader.bytes();
@@ -899,13 +959,13 @@ $root.checkin_proto = (function() {
                         break;
                     }
                 default:
-                    reader.skipType(tag & 7);
+                    reader.skipType(tag & 7, long);
                     break;
                 }
             }
-            if (!message.hasOwnProperty("name"))
+            if (!Object.hasOwnProperty.call(message, "name"))
                 throw $util.ProtocolError("missing required 'name'", { instance: message });
-            if (!message.hasOwnProperty("value"))
+            if (!Object.hasOwnProperty.call(message, "value"))
                 throw $util.ProtocolError("missing required 'value'", { instance: message });
             return message;
         };
@@ -934,9 +994,13 @@ $root.checkin_proto = (function() {
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        GservicesSetting.verify = function verify(message) {
+        GservicesSetting.verify = function verify(message, long) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                return "maximum nesting depth exceeded";
             if (!(message.name && typeof message.name.length === "number" || $util.isString(message.name)))
                 return "name: buffer expected";
             if (!(message.value && typeof message.value.length === "number" || $util.isString(message.value)))
@@ -952,9 +1016,15 @@ $root.checkin_proto = (function() {
          * @param {Object.<string,*>} object Plain object
          * @returns {checkin_proto.GservicesSetting} GservicesSetting
          */
-        GservicesSetting.fromObject = function fromObject(object) {
+        GservicesSetting.fromObject = function fromObject(object, long) {
             if (object instanceof $root.checkin_proto.GservicesSetting)
                 return object;
+            if (!$util.isObject(object))
+                throw TypeError(".checkin_proto.GservicesSetting: object expected");
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var message = new $root.checkin_proto.GservicesSetting();
             if (object.name != null)
                 if (typeof object.name === "string")
@@ -978,9 +1048,13 @@ $root.checkin_proto = (function() {
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        GservicesSetting.toObject = function toObject(message, options) {
+        GservicesSetting.toObject = function toObject(message, options, q) {
             if (!options)
                 options = {};
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             var object = {};
             if (options.defaults) {
                 if (options.bytes === String)
@@ -998,9 +1072,9 @@ $root.checkin_proto = (function() {
                         object.value = $util.newBuffer(object.value);
                 }
             }
-            if (message.name != null && message.hasOwnProperty("name"))
+            if (message.name != null && Object.hasOwnProperty.call(message, "name"))
                 object.name = options.bytes === String ? $util.base64.encode(message.name, 0, message.name.length) : options.bytes === Array ? Array.prototype.slice.call(message.name) : message.name;
-            if (message.value != null && message.hasOwnProperty("value"))
+            if (message.value != null && Object.hasOwnProperty.call(message, "value"))
                 object.value = options.bytes === String ? $util.base64.encode(message.value, 0, message.value.length) : options.bytes === Array ? Array.prototype.slice.call(message.value) : message.value;
             return object;
         };
@@ -1078,7 +1152,7 @@ $root.checkin_proto = (function() {
             this.otaCert = [];
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
+                    if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         }
 
@@ -1208,7 +1282,7 @@ $root.checkin_proto = (function() {
          * @memberof checkin_proto.AndroidCheckinRequest
          * @instance
          */
-        AndroidCheckinRequest.prototype.securityToken = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+        AndroidCheckinRequest.prototype.securityToken = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
 
         /**
          * AndroidCheckinRequest version.
@@ -1271,16 +1345,20 @@ $root.checkin_proto = (function() {
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        AndroidCheckinRequest.encode = function encode(message, writer) {
+        AndroidCheckinRequest.encode = function encode(message, writer, q) {
             if (!writer)
                 writer = $Writer.create();
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             if (message.imei != null && Object.hasOwnProperty.call(message, "imei"))
                 writer.uint32(/* id 1, wireType 2 =*/10).string(message.imei);
             if (message.id != null && Object.hasOwnProperty.call(message, "id"))
                 writer.uint32(/* id 2, wireType 0 =*/16).int64(message.id);
             if (message.digest != null && Object.hasOwnProperty.call(message, "digest"))
                 writer.uint32(/* id 3, wireType 2 =*/26).string(message.digest);
-            $root.checkin_proto.AndroidCheckinProto.encode(message.checkin, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
+            $root.checkin_proto.AndroidCheckinProto.encode(message.checkin, writer.uint32(/* id 4, wireType 2 =*/34).fork(), q + 1).ldelim();
             if (message.desiredBuild != null && Object.hasOwnProperty.call(message, "desiredBuild"))
                 writer.uint32(/* id 5, wireType 2 =*/42).string(message.desiredBuild);
             if (message.locale != null && Object.hasOwnProperty.call(message, "locale"))
@@ -1332,7 +1410,7 @@ $root.checkin_proto = (function() {
          * @returns {$protobuf.Writer} Writer
          */
         AndroidCheckinRequest.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
+            return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
         };
 
         /**
@@ -1346,12 +1424,18 @@ $root.checkin_proto = (function() {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        AndroidCheckinRequest.decode = function decode(reader, length) {
+        AndroidCheckinRequest.decode = function decode(reader, length, error, long) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
+            if (long === undefined)
+                long = 0;
+            if (long > $Reader.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var end = length === undefined ? reader.len : reader.pos + length, message = new $root.checkin_proto.AndroidCheckinRequest();
             while (reader.pos < end) {
                 var tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.imei = reader.string();
@@ -1398,7 +1482,7 @@ $root.checkin_proto = (function() {
                         break;
                     }
                 case 4: {
-                        message.checkin = $root.checkin_proto.AndroidCheckinProto.decode(reader, reader.uint32());
+                        message.checkin = $root.checkin_proto.AndroidCheckinProto.decode(reader, reader.uint32(), undefined, long + 1);
                         break;
                     }
                 case 5: {
@@ -1446,11 +1530,11 @@ $root.checkin_proto = (function() {
                         break;
                     }
                 default:
-                    reader.skipType(tag & 7);
+                    reader.skipType(tag & 7, long);
                     break;
                 }
             }
-            if (!message.hasOwnProperty("checkin"))
+            if (!Object.hasOwnProperty.call(message, "checkin"))
                 throw $util.ProtocolError("missing required 'checkin'", { instance: message });
             return message;
         };
@@ -1479,88 +1563,92 @@ $root.checkin_proto = (function() {
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        AndroidCheckinRequest.verify = function verify(message) {
+        AndroidCheckinRequest.verify = function verify(message, long) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
-            if (message.imei != null && message.hasOwnProperty("imei"))
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                return "maximum nesting depth exceeded";
+            if (message.imei != null && Object.hasOwnProperty.call(message, "imei"))
                 if (!$util.isString(message.imei))
                     return "imei: string expected";
-            if (message.meid != null && message.hasOwnProperty("meid"))
+            if (message.meid != null && Object.hasOwnProperty.call(message, "meid"))
                 if (!$util.isString(message.meid))
                     return "meid: string expected";
-            if (message.macAddr != null && message.hasOwnProperty("macAddr")) {
+            if (message.macAddr != null && Object.hasOwnProperty.call(message, "macAddr")) {
                 if (!Array.isArray(message.macAddr))
                     return "macAddr: array expected";
                 for (var i = 0; i < message.macAddr.length; ++i)
                     if (!$util.isString(message.macAddr[i]))
                         return "macAddr: string[] expected";
             }
-            if (message.macAddrType != null && message.hasOwnProperty("macAddrType")) {
+            if (message.macAddrType != null && Object.hasOwnProperty.call(message, "macAddrType")) {
                 if (!Array.isArray(message.macAddrType))
                     return "macAddrType: array expected";
                 for (var i = 0; i < message.macAddrType.length; ++i)
                     if (!$util.isString(message.macAddrType[i]))
                         return "macAddrType: string[] expected";
             }
-            if (message.serialNumber != null && message.hasOwnProperty("serialNumber"))
+            if (message.serialNumber != null && Object.hasOwnProperty.call(message, "serialNumber"))
                 if (!$util.isString(message.serialNumber))
                     return "serialNumber: string expected";
-            if (message.esn != null && message.hasOwnProperty("esn"))
+            if (message.esn != null && Object.hasOwnProperty.call(message, "esn"))
                 if (!$util.isString(message.esn))
                     return "esn: string expected";
-            if (message.id != null && message.hasOwnProperty("id"))
+            if (message.id != null && Object.hasOwnProperty.call(message, "id"))
                 if (!$util.isInteger(message.id) && !(message.id && $util.isInteger(message.id.low) && $util.isInteger(message.id.high)))
                     return "id: integer|Long expected";
-            if (message.loggingId != null && message.hasOwnProperty("loggingId"))
+            if (message.loggingId != null && Object.hasOwnProperty.call(message, "loggingId"))
                 if (!$util.isInteger(message.loggingId) && !(message.loggingId && $util.isInteger(message.loggingId.low) && $util.isInteger(message.loggingId.high)))
                     return "loggingId: integer|Long expected";
-            if (message.digest != null && message.hasOwnProperty("digest"))
+            if (message.digest != null && Object.hasOwnProperty.call(message, "digest"))
                 if (!$util.isString(message.digest))
                     return "digest: string expected";
-            if (message.locale != null && message.hasOwnProperty("locale"))
+            if (message.locale != null && Object.hasOwnProperty.call(message, "locale"))
                 if (!$util.isString(message.locale))
                     return "locale: string expected";
             {
-                var error = $root.checkin_proto.AndroidCheckinProto.verify(message.checkin);
+                var error = $root.checkin_proto.AndroidCheckinProto.verify(message.checkin, long + 1);
                 if (error)
                     return "checkin." + error;
             }
-            if (message.desiredBuild != null && message.hasOwnProperty("desiredBuild"))
+            if (message.desiredBuild != null && Object.hasOwnProperty.call(message, "desiredBuild"))
                 if (!$util.isString(message.desiredBuild))
                     return "desiredBuild: string expected";
-            if (message.marketCheckin != null && message.hasOwnProperty("marketCheckin"))
+            if (message.marketCheckin != null && Object.hasOwnProperty.call(message, "marketCheckin"))
                 if (!$util.isString(message.marketCheckin))
                     return "marketCheckin: string expected";
-            if (message.accountCookie != null && message.hasOwnProperty("accountCookie")) {
+            if (message.accountCookie != null && Object.hasOwnProperty.call(message, "accountCookie")) {
                 if (!Array.isArray(message.accountCookie))
                     return "accountCookie: array expected";
                 for (var i = 0; i < message.accountCookie.length; ++i)
                     if (!$util.isString(message.accountCookie[i]))
                         return "accountCookie: string[] expected";
             }
-            if (message.timeZone != null && message.hasOwnProperty("timeZone"))
+            if (message.timeZone != null && Object.hasOwnProperty.call(message, "timeZone"))
                 if (!$util.isString(message.timeZone))
                     return "timeZone: string expected";
-            if (message.securityToken != null && message.hasOwnProperty("securityToken"))
+            if (message.securityToken != null && Object.hasOwnProperty.call(message, "securityToken"))
                 if (!$util.isInteger(message.securityToken) && !(message.securityToken && $util.isInteger(message.securityToken.low) && $util.isInteger(message.securityToken.high)))
                     return "securityToken: integer|Long expected";
-            if (message.version != null && message.hasOwnProperty("version"))
+            if (message.version != null && Object.hasOwnProperty.call(message, "version"))
                 if (!$util.isInteger(message.version))
                     return "version: integer expected";
-            if (message.otaCert != null && message.hasOwnProperty("otaCert")) {
+            if (message.otaCert != null && Object.hasOwnProperty.call(message, "otaCert")) {
                 if (!Array.isArray(message.otaCert))
                     return "otaCert: array expected";
                 for (var i = 0; i < message.otaCert.length; ++i)
                     if (!$util.isString(message.otaCert[i]))
                         return "otaCert: string[] expected";
             }
-            if (message.fragment != null && message.hasOwnProperty("fragment"))
+            if (message.fragment != null && Object.hasOwnProperty.call(message, "fragment"))
                 if (!$util.isInteger(message.fragment))
                     return "fragment: integer expected";
-            if (message.userName != null && message.hasOwnProperty("userName"))
+            if (message.userName != null && Object.hasOwnProperty.call(message, "userName"))
                 if (!$util.isString(message.userName))
                     return "userName: string expected";
-            if (message.userSerialNumber != null && message.hasOwnProperty("userSerialNumber"))
+            if (message.userSerialNumber != null && Object.hasOwnProperty.call(message, "userSerialNumber"))
                 if (!$util.isInteger(message.userSerialNumber))
                     return "userSerialNumber: integer expected";
             return null;
@@ -1574,9 +1662,15 @@ $root.checkin_proto = (function() {
          * @param {Object.<string,*>} object Plain object
          * @returns {checkin_proto.AndroidCheckinRequest} AndroidCheckinRequest
          */
-        AndroidCheckinRequest.fromObject = function fromObject(object) {
+        AndroidCheckinRequest.fromObject = function fromObject(object, long) {
             if (object instanceof $root.checkin_proto.AndroidCheckinRequest)
                 return object;
+            if (!$util.isObject(object))
+                throw TypeError(".checkin_proto.AndroidCheckinRequest: object expected");
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var message = new $root.checkin_proto.AndroidCheckinRequest();
             if (object.imei != null)
                 message.imei = String(object.imei);
@@ -1602,7 +1696,7 @@ $root.checkin_proto = (function() {
                 message.esn = String(object.esn);
             if (object.id != null)
                 if ($util.Long)
-                    (message.id = $util.Long.fromValue(object.id)).unsigned = false;
+                    message.id = $util.Long.fromValue(object.id, false);
                 else if (typeof object.id === "string")
                     message.id = parseInt(object.id, 10);
                 else if (typeof object.id === "number")
@@ -1611,7 +1705,7 @@ $root.checkin_proto = (function() {
                     message.id = new $util.LongBits(object.id.low >>> 0, object.id.high >>> 0).toNumber();
             if (object.loggingId != null)
                 if ($util.Long)
-                    (message.loggingId = $util.Long.fromValue(object.loggingId)).unsigned = false;
+                    message.loggingId = $util.Long.fromValue(object.loggingId, false);
                 else if (typeof object.loggingId === "string")
                     message.loggingId = parseInt(object.loggingId, 10);
                 else if (typeof object.loggingId === "number")
@@ -1623,9 +1717,9 @@ $root.checkin_proto = (function() {
             if (object.locale != null)
                 message.locale = String(object.locale);
             if (object.checkin != null) {
-                if (typeof object.checkin !== "object")
+                if (!$util.isObject(object.checkin))
                     throw TypeError(".checkin_proto.AndroidCheckinRequest.checkin: object expected");
-                message.checkin = $root.checkin_proto.AndroidCheckinProto.fromObject(object.checkin);
+                message.checkin = $root.checkin_proto.AndroidCheckinProto.fromObject(object.checkin, long + 1);
             }
             if (object.desiredBuild != null)
                 message.desiredBuild = String(object.desiredBuild);
@@ -1642,13 +1736,13 @@ $root.checkin_proto = (function() {
                 message.timeZone = String(object.timeZone);
             if (object.securityToken != null)
                 if ($util.Long)
-                    (message.securityToken = $util.Long.fromValue(object.securityToken)).unsigned = false;
+                    message.securityToken = $util.Long.fromValue(object.securityToken, true);
                 else if (typeof object.securityToken === "string")
                     message.securityToken = parseInt(object.securityToken, 10);
                 else if (typeof object.securityToken === "number")
                     message.securityToken = object.securityToken;
                 else if (typeof object.securityToken === "object")
-                    message.securityToken = new $util.LongBits(object.securityToken.low >>> 0, object.securityToken.high >>> 0).toNumber();
+                    message.securityToken = new $util.LongBits(object.securityToken.low >>> 0, object.securityToken.high >>> 0).toNumber(true);
             if (object.version != null)
                 message.version = object.version | 0;
             if (object.otaCert) {
@@ -1676,9 +1770,13 @@ $root.checkin_proto = (function() {
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        AndroidCheckinRequest.toObject = function toObject(message, options) {
+        AndroidCheckinRequest.toObject = function toObject(message, options, q) {
             if (!options)
                 options = {};
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             var object = {};
             if (options.arrays || options.defaults) {
                 object.macAddr = [];
@@ -1690,26 +1788,26 @@ $root.checkin_proto = (function() {
                 object.imei = "";
                 if ($util.Long) {
                     var long = new $util.Long(0, 0, false);
-                    object.id = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    object.id = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : typeof BigInt !== "undefined" && options.longs === BigInt ? long.toBigInt() : long;
                 } else
-                    object.id = options.longs === String ? "0" : 0;
+                    object.id = options.longs === String ? "0" : typeof BigInt !== "undefined" && options.longs === BigInt ? BigInt("0") : 0;
                 object.digest = "";
                 object.checkin = null;
                 object.desiredBuild = "";
                 object.locale = "";
                 if ($util.Long) {
                     var long = new $util.Long(0, 0, false);
-                    object.loggingId = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    object.loggingId = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : typeof BigInt !== "undefined" && options.longs === BigInt ? long.toBigInt() : long;
                 } else
-                    object.loggingId = options.longs === String ? "0" : 0;
+                    object.loggingId = options.longs === String ? "0" : typeof BigInt !== "undefined" && options.longs === BigInt ? BigInt("0") : 0;
                 object.marketCheckin = "";
                 object.meid = "";
                 object.timeZone = "";
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
-                    object.securityToken = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    var long = new $util.Long(0, 0, true);
+                    object.securityToken = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : typeof BigInt !== "undefined" && options.longs === BigInt ? long.toBigInt() : long;
                 } else
-                    object.securityToken = options.longs === String ? "0" : 0;
+                    object.securityToken = options.longs === String ? "0" : typeof BigInt !== "undefined" && options.longs === BigInt ? BigInt("0") : 0;
                 object.version = 0;
                 object.serialNumber = "";
                 object.esn = "";
@@ -1717,68 +1815,74 @@ $root.checkin_proto = (function() {
                 object.userName = "";
                 object.userSerialNumber = 0;
             }
-            if (message.imei != null && message.hasOwnProperty("imei"))
+            if (message.imei != null && Object.hasOwnProperty.call(message, "imei"))
                 object.imei = message.imei;
-            if (message.id != null && message.hasOwnProperty("id"))
-                if (typeof message.id === "number")
+            if (message.id != null && Object.hasOwnProperty.call(message, "id"))
+                if (typeof BigInt !== "undefined" && options.longs === BigInt)
+                    object.id = typeof message.id === "number" ? BigInt(message.id) : $util.Long.fromBits(message.id.low >>> 0, message.id.high >>> 0, false).toBigInt();
+                else if (typeof message.id === "number")
                     object.id = options.longs === String ? String(message.id) : message.id;
                 else
                     object.id = options.longs === String ? $util.Long.prototype.toString.call(message.id) : options.longs === Number ? new $util.LongBits(message.id.low >>> 0, message.id.high >>> 0).toNumber() : message.id;
-            if (message.digest != null && message.hasOwnProperty("digest"))
+            if (message.digest != null && Object.hasOwnProperty.call(message, "digest"))
                 object.digest = message.digest;
-            if (message.checkin != null && message.hasOwnProperty("checkin"))
-                object.checkin = $root.checkin_proto.AndroidCheckinProto.toObject(message.checkin, options);
-            if (message.desiredBuild != null && message.hasOwnProperty("desiredBuild"))
+            if (message.checkin != null && Object.hasOwnProperty.call(message, "checkin"))
+                object.checkin = $root.checkin_proto.AndroidCheckinProto.toObject(message.checkin, options, q + 1);
+            if (message.desiredBuild != null && Object.hasOwnProperty.call(message, "desiredBuild"))
                 object.desiredBuild = message.desiredBuild;
-            if (message.locale != null && message.hasOwnProperty("locale"))
+            if (message.locale != null && Object.hasOwnProperty.call(message, "locale"))
                 object.locale = message.locale;
-            if (message.loggingId != null && message.hasOwnProperty("loggingId"))
-                if (typeof message.loggingId === "number")
+            if (message.loggingId != null && Object.hasOwnProperty.call(message, "loggingId"))
+                if (typeof BigInt !== "undefined" && options.longs === BigInt)
+                    object.loggingId = typeof message.loggingId === "number" ? BigInt(message.loggingId) : $util.Long.fromBits(message.loggingId.low >>> 0, message.loggingId.high >>> 0, false).toBigInt();
+                else if (typeof message.loggingId === "number")
                     object.loggingId = options.longs === String ? String(message.loggingId) : message.loggingId;
                 else
                     object.loggingId = options.longs === String ? $util.Long.prototype.toString.call(message.loggingId) : options.longs === Number ? new $util.LongBits(message.loggingId.low >>> 0, message.loggingId.high >>> 0).toNumber() : message.loggingId;
-            if (message.marketCheckin != null && message.hasOwnProperty("marketCheckin"))
+            if (message.marketCheckin != null && Object.hasOwnProperty.call(message, "marketCheckin"))
                 object.marketCheckin = message.marketCheckin;
             if (message.macAddr && message.macAddr.length) {
                 object.macAddr = [];
                 for (var j = 0; j < message.macAddr.length; ++j)
                     object.macAddr[j] = message.macAddr[j];
             }
-            if (message.meid != null && message.hasOwnProperty("meid"))
+            if (message.meid != null && Object.hasOwnProperty.call(message, "meid"))
                 object.meid = message.meid;
             if (message.accountCookie && message.accountCookie.length) {
                 object.accountCookie = [];
                 for (var j = 0; j < message.accountCookie.length; ++j)
                     object.accountCookie[j] = message.accountCookie[j];
             }
-            if (message.timeZone != null && message.hasOwnProperty("timeZone"))
+            if (message.timeZone != null && Object.hasOwnProperty.call(message, "timeZone"))
                 object.timeZone = message.timeZone;
-            if (message.securityToken != null && message.hasOwnProperty("securityToken"))
-                if (typeof message.securityToken === "number")
+            if (message.securityToken != null && Object.hasOwnProperty.call(message, "securityToken"))
+                if (typeof BigInt !== "undefined" && options.longs === BigInt)
+                    object.securityToken = typeof message.securityToken === "number" ? BigInt(message.securityToken) : $util.Long.fromBits(message.securityToken.low >>> 0, message.securityToken.high >>> 0, true).toBigInt();
+                else if (typeof message.securityToken === "number")
                     object.securityToken = options.longs === String ? String(message.securityToken) : message.securityToken;
                 else
-                    object.securityToken = options.longs === String ? $util.Long.prototype.toString.call(message.securityToken) : options.longs === Number ? new $util.LongBits(message.securityToken.low >>> 0, message.securityToken.high >>> 0).toNumber() : message.securityToken;
-            if (message.version != null && message.hasOwnProperty("version"))
+                    object.securityToken = options.longs === String ? $util.Long.prototype.toString.call(message.securityToken) : options.longs === Number ? new $util.LongBits(message.securityToken.low >>> 0, message.securityToken.high >>> 0).toNumber(true) : message.securityToken;
+            if (message.version != null && Object.hasOwnProperty.call(message, "version"))
                 object.version = message.version;
             if (message.otaCert && message.otaCert.length) {
                 object.otaCert = [];
                 for (var j = 0; j < message.otaCert.length; ++j)
                     object.otaCert[j] = message.otaCert[j];
             }
-            if (message.serialNumber != null && message.hasOwnProperty("serialNumber"))
+            if (message.serialNumber != null && Object.hasOwnProperty.call(message, "serialNumber"))
                 object.serialNumber = message.serialNumber;
-            if (message.esn != null && message.hasOwnProperty("esn"))
+            if (message.esn != null && Object.hasOwnProperty.call(message, "esn"))
                 object.esn = message.esn;
             if (message.macAddrType && message.macAddrType.length) {
                 object.macAddrType = [];
                 for (var j = 0; j < message.macAddrType.length; ++j)
                     object.macAddrType[j] = message.macAddrType[j];
             }
-            if (message.fragment != null && message.hasOwnProperty("fragment"))
+            if (message.fragment != null && Object.hasOwnProperty.call(message, "fragment"))
                 object.fragment = message.fragment;
-            if (message.userName != null && message.hasOwnProperty("userName"))
+            if (message.userName != null && Object.hasOwnProperty.call(message, "userName"))
                 object.userName = message.userName;
-            if (message.userSerialNumber != null && message.hasOwnProperty("userSerialNumber"))
+            if (message.userSerialNumber != null && Object.hasOwnProperty.call(message, "userSerialNumber"))
                 object.userSerialNumber = message.userSerialNumber;
             return object;
         };
@@ -1843,7 +1947,7 @@ $root.checkin_proto = (function() {
             this.setting = [];
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
+                    if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         }
 
@@ -1909,7 +2013,7 @@ $root.checkin_proto = (function() {
          * @memberof checkin_proto.AndroidCheckinResponse
          * @instance
          */
-        AndroidCheckinResponse.prototype.androidId = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+        AndroidCheckinResponse.prototype.androidId = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
 
         /**
          * AndroidCheckinResponse securityToken.
@@ -1917,7 +2021,7 @@ $root.checkin_proto = (function() {
          * @memberof checkin_proto.AndroidCheckinResponse
          * @instance
          */
-        AndroidCheckinResponse.prototype.securityToken = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+        AndroidCheckinResponse.prototype.securityToken = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
 
         /**
          * AndroidCheckinResponse versionInfo.
@@ -1948,9 +2052,13 @@ $root.checkin_proto = (function() {
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        AndroidCheckinResponse.encode = function encode(message, writer) {
+        AndroidCheckinResponse.encode = function encode(message, writer, q) {
             if (!writer)
                 writer = $Writer.create();
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             writer.uint32(/* id 1, wireType 0 =*/8).bool(message.statsOk);
             if (message.timeMsec != null && Object.hasOwnProperty.call(message, "timeMsec"))
                 writer.uint32(/* id 3, wireType 0 =*/24).int64(message.timeMsec);
@@ -1958,7 +2066,7 @@ $root.checkin_proto = (function() {
                 writer.uint32(/* id 4, wireType 2 =*/34).string(message.digest);
             if (message.setting != null && message.setting.length)
                 for (var i = 0; i < message.setting.length; ++i)
-                    $root.checkin_proto.GservicesSetting.encode(message.setting[i], writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
+                    $root.checkin_proto.GservicesSetting.encode(message.setting[i], writer.uint32(/* id 5, wireType 2 =*/42).fork(), q + 1).ldelim();
             if (message.marketOk != null && Object.hasOwnProperty.call(message, "marketOk"))
                 writer.uint32(/* id 6, wireType 0 =*/48).bool(message.marketOk);
             if (message.androidId != null && Object.hasOwnProperty.call(message, "androidId"))
@@ -1985,7 +2093,7 @@ $root.checkin_proto = (function() {
          * @returns {$protobuf.Writer} Writer
          */
         AndroidCheckinResponse.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
+            return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
         };
 
         /**
@@ -1999,12 +2107,18 @@ $root.checkin_proto = (function() {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        AndroidCheckinResponse.decode = function decode(reader, length) {
+        AndroidCheckinResponse.decode = function decode(reader, length, error, long) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
+            if (long === undefined)
+                long = 0;
+            if (long > $Reader.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var end = length === undefined ? reader.len : reader.pos + length, message = new $root.checkin_proto.AndroidCheckinResponse();
             while (reader.pos < end) {
                 var tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.statsOk = reader.bool();
@@ -2031,7 +2145,7 @@ $root.checkin_proto = (function() {
                 case 5: {
                         if (!(message.setting && message.setting.length))
                             message.setting = [];
-                        message.setting.push($root.checkin_proto.GservicesSetting.decode(reader, reader.uint32()));
+                        message.setting.push($root.checkin_proto.GservicesSetting.decode(reader, reader.uint32(), undefined, long + 1));
                         break;
                     }
                 case 6: {
@@ -2051,11 +2165,11 @@ $root.checkin_proto = (function() {
                         break;
                     }
                 default:
-                    reader.skipType(tag & 7);
+                    reader.skipType(tag & 7, long);
                     break;
                 }
             }
-            if (!message.hasOwnProperty("statsOk"))
+            if (!Object.hasOwnProperty.call(message, "statsOk"))
                 throw $util.ProtocolError("missing required 'statsOk'", { instance: message });
             return message;
         };
@@ -2084,46 +2198,50 @@ $root.checkin_proto = (function() {
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        AndroidCheckinResponse.verify = function verify(message) {
+        AndroidCheckinResponse.verify = function verify(message, long) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                return "maximum nesting depth exceeded";
             if (typeof message.statsOk !== "boolean")
                 return "statsOk: boolean expected";
-            if (message.timeMsec != null && message.hasOwnProperty("timeMsec"))
+            if (message.timeMsec != null && Object.hasOwnProperty.call(message, "timeMsec"))
                 if (!$util.isInteger(message.timeMsec) && !(message.timeMsec && $util.isInteger(message.timeMsec.low) && $util.isInteger(message.timeMsec.high)))
                     return "timeMsec: integer|Long expected";
-            if (message.digest != null && message.hasOwnProperty("digest"))
+            if (message.digest != null && Object.hasOwnProperty.call(message, "digest"))
                 if (!$util.isString(message.digest))
                     return "digest: string expected";
-            if (message.settingsDiff != null && message.hasOwnProperty("settingsDiff"))
+            if (message.settingsDiff != null && Object.hasOwnProperty.call(message, "settingsDiff"))
                 if (typeof message.settingsDiff !== "boolean")
                     return "settingsDiff: boolean expected";
-            if (message.deleteSetting != null && message.hasOwnProperty("deleteSetting")) {
+            if (message.deleteSetting != null && Object.hasOwnProperty.call(message, "deleteSetting")) {
                 if (!Array.isArray(message.deleteSetting))
                     return "deleteSetting: array expected";
                 for (var i = 0; i < message.deleteSetting.length; ++i)
                     if (!$util.isString(message.deleteSetting[i]))
                         return "deleteSetting: string[] expected";
             }
-            if (message.setting != null && message.hasOwnProperty("setting")) {
+            if (message.setting != null && Object.hasOwnProperty.call(message, "setting")) {
                 if (!Array.isArray(message.setting))
                     return "setting: array expected";
                 for (var i = 0; i < message.setting.length; ++i) {
-                    var error = $root.checkin_proto.GservicesSetting.verify(message.setting[i]);
+                    var error = $root.checkin_proto.GservicesSetting.verify(message.setting[i], long + 1);
                     if (error)
                         return "setting." + error;
                 }
             }
-            if (message.marketOk != null && message.hasOwnProperty("marketOk"))
+            if (message.marketOk != null && Object.hasOwnProperty.call(message, "marketOk"))
                 if (typeof message.marketOk !== "boolean")
                     return "marketOk: boolean expected";
-            if (message.androidId != null && message.hasOwnProperty("androidId"))
+            if (message.androidId != null && Object.hasOwnProperty.call(message, "androidId"))
                 if (!$util.isInteger(message.androidId) && !(message.androidId && $util.isInteger(message.androidId.low) && $util.isInteger(message.androidId.high)))
                     return "androidId: integer|Long expected";
-            if (message.securityToken != null && message.hasOwnProperty("securityToken"))
+            if (message.securityToken != null && Object.hasOwnProperty.call(message, "securityToken"))
                 if (!$util.isInteger(message.securityToken) && !(message.securityToken && $util.isInteger(message.securityToken.low) && $util.isInteger(message.securityToken.high)))
                     return "securityToken: integer|Long expected";
-            if (message.versionInfo != null && message.hasOwnProperty("versionInfo"))
+            if (message.versionInfo != null && Object.hasOwnProperty.call(message, "versionInfo"))
                 if (!$util.isString(message.versionInfo))
                     return "versionInfo: string expected";
             return null;
@@ -2137,15 +2255,21 @@ $root.checkin_proto = (function() {
          * @param {Object.<string,*>} object Plain object
          * @returns {checkin_proto.AndroidCheckinResponse} AndroidCheckinResponse
          */
-        AndroidCheckinResponse.fromObject = function fromObject(object) {
+        AndroidCheckinResponse.fromObject = function fromObject(object, long) {
             if (object instanceof $root.checkin_proto.AndroidCheckinResponse)
                 return object;
+            if (!$util.isObject(object))
+                throw TypeError(".checkin_proto.AndroidCheckinResponse: object expected");
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var message = new $root.checkin_proto.AndroidCheckinResponse();
             if (object.statsOk != null)
                 message.statsOk = Boolean(object.statsOk);
             if (object.timeMsec != null)
                 if ($util.Long)
-                    (message.timeMsec = $util.Long.fromValue(object.timeMsec)).unsigned = false;
+                    message.timeMsec = $util.Long.fromValue(object.timeMsec, false);
                 else if (typeof object.timeMsec === "string")
                     message.timeMsec = parseInt(object.timeMsec, 10);
                 else if (typeof object.timeMsec === "number")
@@ -2168,31 +2292,31 @@ $root.checkin_proto = (function() {
                     throw TypeError(".checkin_proto.AndroidCheckinResponse.setting: array expected");
                 message.setting = [];
                 for (var i = 0; i < object.setting.length; ++i) {
-                    if (typeof object.setting[i] !== "object")
+                    if (!$util.isObject(object.setting[i]))
                         throw TypeError(".checkin_proto.AndroidCheckinResponse.setting: object expected");
-                    message.setting[i] = $root.checkin_proto.GservicesSetting.fromObject(object.setting[i]);
+                    message.setting[i] = $root.checkin_proto.GservicesSetting.fromObject(object.setting[i], long + 1);
                 }
             }
             if (object.marketOk != null)
                 message.marketOk = Boolean(object.marketOk);
             if (object.androidId != null)
                 if ($util.Long)
-                    (message.androidId = $util.Long.fromValue(object.androidId)).unsigned = false;
+                    message.androidId = $util.Long.fromValue(object.androidId, true);
                 else if (typeof object.androidId === "string")
                     message.androidId = parseInt(object.androidId, 10);
                 else if (typeof object.androidId === "number")
                     message.androidId = object.androidId;
                 else if (typeof object.androidId === "object")
-                    message.androidId = new $util.LongBits(object.androidId.low >>> 0, object.androidId.high >>> 0).toNumber();
+                    message.androidId = new $util.LongBits(object.androidId.low >>> 0, object.androidId.high >>> 0).toNumber(true);
             if (object.securityToken != null)
                 if ($util.Long)
-                    (message.securityToken = $util.Long.fromValue(object.securityToken)).unsigned = false;
+                    message.securityToken = $util.Long.fromValue(object.securityToken, true);
                 else if (typeof object.securityToken === "string")
                     message.securityToken = parseInt(object.securityToken, 10);
                 else if (typeof object.securityToken === "number")
                     message.securityToken = object.securityToken;
                 else if (typeof object.securityToken === "object")
-                    message.securityToken = new $util.LongBits(object.securityToken.low >>> 0, object.securityToken.high >>> 0).toNumber();
+                    message.securityToken = new $util.LongBits(object.securityToken.low >>> 0, object.securityToken.high >>> 0).toNumber(true);
             if (object.versionInfo != null)
                 message.versionInfo = String(object.versionInfo);
             return message;
@@ -2207,9 +2331,13 @@ $root.checkin_proto = (function() {
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        AndroidCheckinResponse.toObject = function toObject(message, options) {
+        AndroidCheckinResponse.toObject = function toObject(message, options, q) {
             if (!options)
                 options = {};
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             var object = {};
             if (options.arrays || options.defaults) {
                 object.setting = [];
@@ -2219,58 +2347,64 @@ $root.checkin_proto = (function() {
                 object.statsOk = false;
                 if ($util.Long) {
                     var long = new $util.Long(0, 0, false);
-                    object.timeMsec = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    object.timeMsec = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : typeof BigInt !== "undefined" && options.longs === BigInt ? long.toBigInt() : long;
                 } else
-                    object.timeMsec = options.longs === String ? "0" : 0;
+                    object.timeMsec = options.longs === String ? "0" : typeof BigInt !== "undefined" && options.longs === BigInt ? BigInt("0") : 0;
                 object.digest = "";
                 object.marketOk = false;
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
-                    object.androidId = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    var long = new $util.Long(0, 0, true);
+                    object.androidId = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : typeof BigInt !== "undefined" && options.longs === BigInt ? long.toBigInt() : long;
                 } else
-                    object.androidId = options.longs === String ? "0" : 0;
+                    object.androidId = options.longs === String ? "0" : typeof BigInt !== "undefined" && options.longs === BigInt ? BigInt("0") : 0;
                 if ($util.Long) {
-                    var long = new $util.Long(0, 0, false);
-                    object.securityToken = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    var long = new $util.Long(0, 0, true);
+                    object.securityToken = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : typeof BigInt !== "undefined" && options.longs === BigInt ? long.toBigInt() : long;
                 } else
-                    object.securityToken = options.longs === String ? "0" : 0;
+                    object.securityToken = options.longs === String ? "0" : typeof BigInt !== "undefined" && options.longs === BigInt ? BigInt("0") : 0;
                 object.settingsDiff = false;
                 object.versionInfo = "";
             }
-            if (message.statsOk != null && message.hasOwnProperty("statsOk"))
+            if (message.statsOk != null && Object.hasOwnProperty.call(message, "statsOk"))
                 object.statsOk = message.statsOk;
-            if (message.timeMsec != null && message.hasOwnProperty("timeMsec"))
-                if (typeof message.timeMsec === "number")
+            if (message.timeMsec != null && Object.hasOwnProperty.call(message, "timeMsec"))
+                if (typeof BigInt !== "undefined" && options.longs === BigInt)
+                    object.timeMsec = typeof message.timeMsec === "number" ? BigInt(message.timeMsec) : $util.Long.fromBits(message.timeMsec.low >>> 0, message.timeMsec.high >>> 0, false).toBigInt();
+                else if (typeof message.timeMsec === "number")
                     object.timeMsec = options.longs === String ? String(message.timeMsec) : message.timeMsec;
                 else
                     object.timeMsec = options.longs === String ? $util.Long.prototype.toString.call(message.timeMsec) : options.longs === Number ? new $util.LongBits(message.timeMsec.low >>> 0, message.timeMsec.high >>> 0).toNumber() : message.timeMsec;
-            if (message.digest != null && message.hasOwnProperty("digest"))
+            if (message.digest != null && Object.hasOwnProperty.call(message, "digest"))
                 object.digest = message.digest;
             if (message.setting && message.setting.length) {
                 object.setting = [];
                 for (var j = 0; j < message.setting.length; ++j)
-                    object.setting[j] = $root.checkin_proto.GservicesSetting.toObject(message.setting[j], options);
+                    object.setting[j] = $root.checkin_proto.GservicesSetting.toObject(message.setting[j], options, q + 1);
             }
-            if (message.marketOk != null && message.hasOwnProperty("marketOk"))
+            if (message.marketOk != null && Object.hasOwnProperty.call(message, "marketOk"))
                 object.marketOk = message.marketOk;
-            if (message.androidId != null && message.hasOwnProperty("androidId"))
-                if (typeof message.androidId === "number")
+            if (message.androidId != null && Object.hasOwnProperty.call(message, "androidId"))
+                if (typeof BigInt !== "undefined" && options.longs === BigInt)
+                    object.androidId = typeof message.androidId === "number" ? BigInt(message.androidId) : $util.Long.fromBits(message.androidId.low >>> 0, message.androidId.high >>> 0, true).toBigInt();
+                else if (typeof message.androidId === "number")
                     object.androidId = options.longs === String ? String(message.androidId) : message.androidId;
                 else
-                    object.androidId = options.longs === String ? $util.Long.prototype.toString.call(message.androidId) : options.longs === Number ? new $util.LongBits(message.androidId.low >>> 0, message.androidId.high >>> 0).toNumber() : message.androidId;
-            if (message.securityToken != null && message.hasOwnProperty("securityToken"))
-                if (typeof message.securityToken === "number")
+                    object.androidId = options.longs === String ? $util.Long.prototype.toString.call(message.androidId) : options.longs === Number ? new $util.LongBits(message.androidId.low >>> 0, message.androidId.high >>> 0).toNumber(true) : message.androidId;
+            if (message.securityToken != null && Object.hasOwnProperty.call(message, "securityToken"))
+                if (typeof BigInt !== "undefined" && options.longs === BigInt)
+                    object.securityToken = typeof message.securityToken === "number" ? BigInt(message.securityToken) : $util.Long.fromBits(message.securityToken.low >>> 0, message.securityToken.high >>> 0, true).toBigInt();
+                else if (typeof message.securityToken === "number")
                     object.securityToken = options.longs === String ? String(message.securityToken) : message.securityToken;
                 else
-                    object.securityToken = options.longs === String ? $util.Long.prototype.toString.call(message.securityToken) : options.longs === Number ? new $util.LongBits(message.securityToken.low >>> 0, message.securityToken.high >>> 0).toNumber() : message.securityToken;
-            if (message.settingsDiff != null && message.hasOwnProperty("settingsDiff"))
+                    object.securityToken = options.longs === String ? $util.Long.prototype.toString.call(message.securityToken) : options.longs === Number ? new $util.LongBits(message.securityToken.low >>> 0, message.securityToken.high >>> 0).toNumber(true) : message.securityToken;
+            if (message.settingsDiff != null && Object.hasOwnProperty.call(message, "settingsDiff"))
                 object.settingsDiff = message.settingsDiff;
             if (message.deleteSetting && message.deleteSetting.length) {
                 object.deleteSetting = [];
                 for (var j = 0; j < message.deleteSetting.length; ++j)
                     object.deleteSetting[j] = message.deleteSetting[j];
             }
-            if (message.versionInfo != null && message.hasOwnProperty("versionInfo"))
+            if (message.versionInfo != null && Object.hasOwnProperty.call(message, "versionInfo"))
                 object.versionInfo = message.versionInfo;
             return object;
         };
@@ -2338,7 +2472,7 @@ $root.mcs_proto = (function() {
         function HeartbeatPing(properties) {
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
+                    if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         }
 
@@ -2387,9 +2521,13 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        HeartbeatPing.encode = function encode(message, writer) {
+        HeartbeatPing.encode = function encode(message, writer, q) {
             if (!writer)
                 writer = $Writer.create();
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             if (message.streamId != null && Object.hasOwnProperty.call(message, "streamId"))
                 writer.uint32(/* id 1, wireType 0 =*/8).int32(message.streamId);
             if (message.lastStreamIdReceived != null && Object.hasOwnProperty.call(message, "lastStreamIdReceived"))
@@ -2409,7 +2547,7 @@ $root.mcs_proto = (function() {
          * @returns {$protobuf.Writer} Writer
          */
         HeartbeatPing.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
+            return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
         };
 
         /**
@@ -2423,12 +2561,18 @@ $root.mcs_proto = (function() {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        HeartbeatPing.decode = function decode(reader, length) {
+        HeartbeatPing.decode = function decode(reader, length, error, long) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
+            if (long === undefined)
+                long = 0;
+            if (long > $Reader.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.HeartbeatPing();
             while (reader.pos < end) {
                 var tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.streamId = reader.int32();
@@ -2443,7 +2587,7 @@ $root.mcs_proto = (function() {
                         break;
                     }
                 default:
-                    reader.skipType(tag & 7);
+                    reader.skipType(tag & 7, long);
                     break;
                 }
             }
@@ -2474,16 +2618,20 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        HeartbeatPing.verify = function verify(message) {
+        HeartbeatPing.verify = function verify(message, long) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
-            if (message.streamId != null && message.hasOwnProperty("streamId"))
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                return "maximum nesting depth exceeded";
+            if (message.streamId != null && Object.hasOwnProperty.call(message, "streamId"))
                 if (!$util.isInteger(message.streamId))
                     return "streamId: integer expected";
-            if (message.lastStreamIdReceived != null && message.hasOwnProperty("lastStreamIdReceived"))
+            if (message.lastStreamIdReceived != null && Object.hasOwnProperty.call(message, "lastStreamIdReceived"))
                 if (!$util.isInteger(message.lastStreamIdReceived))
                     return "lastStreamIdReceived: integer expected";
-            if (message.status != null && message.hasOwnProperty("status"))
+            if (message.status != null && Object.hasOwnProperty.call(message, "status"))
                 if (!$util.isInteger(message.status) && !(message.status && $util.isInteger(message.status.low) && $util.isInteger(message.status.high)))
                     return "status: integer|Long expected";
             return null;
@@ -2497,9 +2645,15 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} object Plain object
          * @returns {mcs_proto.HeartbeatPing} HeartbeatPing
          */
-        HeartbeatPing.fromObject = function fromObject(object) {
+        HeartbeatPing.fromObject = function fromObject(object, long) {
             if (object instanceof $root.mcs_proto.HeartbeatPing)
                 return object;
+            if (!$util.isObject(object))
+                throw TypeError(".mcs_proto.HeartbeatPing: object expected");
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var message = new $root.mcs_proto.HeartbeatPing();
             if (object.streamId != null)
                 message.streamId = object.streamId | 0;
@@ -2507,7 +2661,7 @@ $root.mcs_proto = (function() {
                 message.lastStreamIdReceived = object.lastStreamIdReceived | 0;
             if (object.status != null)
                 if ($util.Long)
-                    (message.status = $util.Long.fromValue(object.status)).unsigned = false;
+                    message.status = $util.Long.fromValue(object.status, false);
                 else if (typeof object.status === "string")
                     message.status = parseInt(object.status, 10);
                 else if (typeof object.status === "number")
@@ -2526,25 +2680,31 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        HeartbeatPing.toObject = function toObject(message, options) {
+        HeartbeatPing.toObject = function toObject(message, options, q) {
             if (!options)
                 options = {};
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             var object = {};
             if (options.defaults) {
                 object.streamId = 0;
                 object.lastStreamIdReceived = 0;
                 if ($util.Long) {
                     var long = new $util.Long(0, 0, false);
-                    object.status = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    object.status = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : typeof BigInt !== "undefined" && options.longs === BigInt ? long.toBigInt() : long;
                 } else
-                    object.status = options.longs === String ? "0" : 0;
+                    object.status = options.longs === String ? "0" : typeof BigInt !== "undefined" && options.longs === BigInt ? BigInt("0") : 0;
             }
-            if (message.streamId != null && message.hasOwnProperty("streamId"))
+            if (message.streamId != null && Object.hasOwnProperty.call(message, "streamId"))
                 object.streamId = message.streamId;
-            if (message.lastStreamIdReceived != null && message.hasOwnProperty("lastStreamIdReceived"))
+            if (message.lastStreamIdReceived != null && Object.hasOwnProperty.call(message, "lastStreamIdReceived"))
                 object.lastStreamIdReceived = message.lastStreamIdReceived;
-            if (message.status != null && message.hasOwnProperty("status"))
-                if (typeof message.status === "number")
+            if (message.status != null && Object.hasOwnProperty.call(message, "status"))
+                if (typeof BigInt !== "undefined" && options.longs === BigInt)
+                    object.status = typeof message.status === "number" ? BigInt(message.status) : $util.Long.fromBits(message.status.low >>> 0, message.status.high >>> 0, false).toBigInt();
+                else if (typeof message.status === "number")
                     object.status = options.longs === String ? String(message.status) : message.status;
                 else
                     object.status = options.longs === String ? $util.Long.prototype.toString.call(message.status) : options.longs === Number ? new $util.LongBits(message.status.low >>> 0, message.status.high >>> 0).toNumber() : message.status;
@@ -2602,7 +2762,7 @@ $root.mcs_proto = (function() {
         function HeartbeatAck(properties) {
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
+                    if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         }
 
@@ -2651,9 +2811,13 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        HeartbeatAck.encode = function encode(message, writer) {
+        HeartbeatAck.encode = function encode(message, writer, q) {
             if (!writer)
                 writer = $Writer.create();
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             if (message.streamId != null && Object.hasOwnProperty.call(message, "streamId"))
                 writer.uint32(/* id 1, wireType 0 =*/8).int32(message.streamId);
             if (message.lastStreamIdReceived != null && Object.hasOwnProperty.call(message, "lastStreamIdReceived"))
@@ -2673,7 +2837,7 @@ $root.mcs_proto = (function() {
          * @returns {$protobuf.Writer} Writer
          */
         HeartbeatAck.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
+            return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
         };
 
         /**
@@ -2687,12 +2851,18 @@ $root.mcs_proto = (function() {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        HeartbeatAck.decode = function decode(reader, length) {
+        HeartbeatAck.decode = function decode(reader, length, error, long) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
+            if (long === undefined)
+                long = 0;
+            if (long > $Reader.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.HeartbeatAck();
             while (reader.pos < end) {
                 var tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.streamId = reader.int32();
@@ -2707,7 +2877,7 @@ $root.mcs_proto = (function() {
                         break;
                     }
                 default:
-                    reader.skipType(tag & 7);
+                    reader.skipType(tag & 7, long);
                     break;
                 }
             }
@@ -2738,16 +2908,20 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        HeartbeatAck.verify = function verify(message) {
+        HeartbeatAck.verify = function verify(message, long) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
-            if (message.streamId != null && message.hasOwnProperty("streamId"))
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                return "maximum nesting depth exceeded";
+            if (message.streamId != null && Object.hasOwnProperty.call(message, "streamId"))
                 if (!$util.isInteger(message.streamId))
                     return "streamId: integer expected";
-            if (message.lastStreamIdReceived != null && message.hasOwnProperty("lastStreamIdReceived"))
+            if (message.lastStreamIdReceived != null && Object.hasOwnProperty.call(message, "lastStreamIdReceived"))
                 if (!$util.isInteger(message.lastStreamIdReceived))
                     return "lastStreamIdReceived: integer expected";
-            if (message.status != null && message.hasOwnProperty("status"))
+            if (message.status != null && Object.hasOwnProperty.call(message, "status"))
                 if (!$util.isInteger(message.status) && !(message.status && $util.isInteger(message.status.low) && $util.isInteger(message.status.high)))
                     return "status: integer|Long expected";
             return null;
@@ -2761,9 +2935,15 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} object Plain object
          * @returns {mcs_proto.HeartbeatAck} HeartbeatAck
          */
-        HeartbeatAck.fromObject = function fromObject(object) {
+        HeartbeatAck.fromObject = function fromObject(object, long) {
             if (object instanceof $root.mcs_proto.HeartbeatAck)
                 return object;
+            if (!$util.isObject(object))
+                throw TypeError(".mcs_proto.HeartbeatAck: object expected");
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var message = new $root.mcs_proto.HeartbeatAck();
             if (object.streamId != null)
                 message.streamId = object.streamId | 0;
@@ -2771,7 +2951,7 @@ $root.mcs_proto = (function() {
                 message.lastStreamIdReceived = object.lastStreamIdReceived | 0;
             if (object.status != null)
                 if ($util.Long)
-                    (message.status = $util.Long.fromValue(object.status)).unsigned = false;
+                    message.status = $util.Long.fromValue(object.status, false);
                 else if (typeof object.status === "string")
                     message.status = parseInt(object.status, 10);
                 else if (typeof object.status === "number")
@@ -2790,25 +2970,31 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        HeartbeatAck.toObject = function toObject(message, options) {
+        HeartbeatAck.toObject = function toObject(message, options, q) {
             if (!options)
                 options = {};
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             var object = {};
             if (options.defaults) {
                 object.streamId = 0;
                 object.lastStreamIdReceived = 0;
                 if ($util.Long) {
                     var long = new $util.Long(0, 0, false);
-                    object.status = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    object.status = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : typeof BigInt !== "undefined" && options.longs === BigInt ? long.toBigInt() : long;
                 } else
-                    object.status = options.longs === String ? "0" : 0;
+                    object.status = options.longs === String ? "0" : typeof BigInt !== "undefined" && options.longs === BigInt ? BigInt("0") : 0;
             }
-            if (message.streamId != null && message.hasOwnProperty("streamId"))
+            if (message.streamId != null && Object.hasOwnProperty.call(message, "streamId"))
                 object.streamId = message.streamId;
-            if (message.lastStreamIdReceived != null && message.hasOwnProperty("lastStreamIdReceived"))
+            if (message.lastStreamIdReceived != null && Object.hasOwnProperty.call(message, "lastStreamIdReceived"))
                 object.lastStreamIdReceived = message.lastStreamIdReceived;
-            if (message.status != null && message.hasOwnProperty("status"))
-                if (typeof message.status === "number")
+            if (message.status != null && Object.hasOwnProperty.call(message, "status"))
+                if (typeof BigInt !== "undefined" && options.longs === BigInt)
+                    object.status = typeof message.status === "number" ? BigInt(message.status) : $util.Long.fromBits(message.status.low >>> 0, message.status.high >>> 0, false).toBigInt();
+                else if (typeof message.status === "number")
                     object.status = options.longs === String ? String(message.status) : message.status;
                 else
                     object.status = options.longs === String ? $util.Long.prototype.toString.call(message.status) : options.longs === Number ? new $util.LongBits(message.status.low >>> 0, message.status.high >>> 0).toNumber() : message.status;
@@ -2867,7 +3053,7 @@ $root.mcs_proto = (function() {
         function ErrorInfo(properties) {
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
+                    if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         }
 
@@ -2924,16 +3110,20 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        ErrorInfo.encode = function encode(message, writer) {
+        ErrorInfo.encode = function encode(message, writer, q) {
             if (!writer)
                 writer = $Writer.create();
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             writer.uint32(/* id 1, wireType 0 =*/8).int32(message.code);
             if (message.message != null && Object.hasOwnProperty.call(message, "message"))
                 writer.uint32(/* id 2, wireType 2 =*/18).string(message.message);
             if (message.type != null && Object.hasOwnProperty.call(message, "type"))
                 writer.uint32(/* id 3, wireType 2 =*/26).string(message.type);
             if (message.extension != null && Object.hasOwnProperty.call(message, "extension"))
-                $root.mcs_proto.Extension.encode(message.extension, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
+                $root.mcs_proto.Extension.encode(message.extension, writer.uint32(/* id 4, wireType 2 =*/34).fork(), q + 1).ldelim();
             return writer;
         };
 
@@ -2947,7 +3137,7 @@ $root.mcs_proto = (function() {
          * @returns {$protobuf.Writer} Writer
          */
         ErrorInfo.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
+            return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
         };
 
         /**
@@ -2961,12 +3151,18 @@ $root.mcs_proto = (function() {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        ErrorInfo.decode = function decode(reader, length) {
+        ErrorInfo.decode = function decode(reader, length, error, long) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
+            if (long === undefined)
+                long = 0;
+            if (long > $Reader.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.ErrorInfo();
             while (reader.pos < end) {
                 var tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.code = reader.int32();
@@ -2981,15 +3177,15 @@ $root.mcs_proto = (function() {
                         break;
                     }
                 case 4: {
-                        message.extension = $root.mcs_proto.Extension.decode(reader, reader.uint32());
+                        message.extension = $root.mcs_proto.Extension.decode(reader, reader.uint32(), undefined, long + 1);
                         break;
                     }
                 default:
-                    reader.skipType(tag & 7);
+                    reader.skipType(tag & 7, long);
                     break;
                 }
             }
-            if (!message.hasOwnProperty("code"))
+            if (!Object.hasOwnProperty.call(message, "code"))
                 throw $util.ProtocolError("missing required 'code'", { instance: message });
             return message;
         };
@@ -3018,19 +3214,23 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        ErrorInfo.verify = function verify(message) {
+        ErrorInfo.verify = function verify(message, long) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                return "maximum nesting depth exceeded";
             if (!$util.isInteger(message.code))
                 return "code: integer expected";
-            if (message.message != null && message.hasOwnProperty("message"))
+            if (message.message != null && Object.hasOwnProperty.call(message, "message"))
                 if (!$util.isString(message.message))
                     return "message: string expected";
-            if (message.type != null && message.hasOwnProperty("type"))
+            if (message.type != null && Object.hasOwnProperty.call(message, "type"))
                 if (!$util.isString(message.type))
                     return "type: string expected";
-            if (message.extension != null && message.hasOwnProperty("extension")) {
-                var error = $root.mcs_proto.Extension.verify(message.extension);
+            if (message.extension != null && Object.hasOwnProperty.call(message, "extension")) {
+                var error = $root.mcs_proto.Extension.verify(message.extension, long + 1);
                 if (error)
                     return "extension." + error;
             }
@@ -3045,9 +3245,15 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} object Plain object
          * @returns {mcs_proto.ErrorInfo} ErrorInfo
          */
-        ErrorInfo.fromObject = function fromObject(object) {
+        ErrorInfo.fromObject = function fromObject(object, long) {
             if (object instanceof $root.mcs_proto.ErrorInfo)
                 return object;
+            if (!$util.isObject(object))
+                throw TypeError(".mcs_proto.ErrorInfo: object expected");
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var message = new $root.mcs_proto.ErrorInfo();
             if (object.code != null)
                 message.code = object.code | 0;
@@ -3056,9 +3262,9 @@ $root.mcs_proto = (function() {
             if (object.type != null)
                 message.type = String(object.type);
             if (object.extension != null) {
-                if (typeof object.extension !== "object")
+                if (!$util.isObject(object.extension))
                     throw TypeError(".mcs_proto.ErrorInfo.extension: object expected");
-                message.extension = $root.mcs_proto.Extension.fromObject(object.extension);
+                message.extension = $root.mcs_proto.Extension.fromObject(object.extension, long + 1);
             }
             return message;
         };
@@ -3072,9 +3278,13 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        ErrorInfo.toObject = function toObject(message, options) {
+        ErrorInfo.toObject = function toObject(message, options, q) {
             if (!options)
                 options = {};
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             var object = {};
             if (options.defaults) {
                 object.code = 0;
@@ -3082,14 +3292,14 @@ $root.mcs_proto = (function() {
                 object.type = "";
                 object.extension = null;
             }
-            if (message.code != null && message.hasOwnProperty("code"))
+            if (message.code != null && Object.hasOwnProperty.call(message, "code"))
                 object.code = message.code;
-            if (message.message != null && message.hasOwnProperty("message"))
+            if (message.message != null && Object.hasOwnProperty.call(message, "message"))
                 object.message = message.message;
-            if (message.type != null && message.hasOwnProperty("type"))
+            if (message.type != null && Object.hasOwnProperty.call(message, "type"))
                 object.type = message.type;
-            if (message.extension != null && message.hasOwnProperty("extension"))
-                object.extension = $root.mcs_proto.Extension.toObject(message.extension, options);
+            if (message.extension != null && Object.hasOwnProperty.call(message, "extension"))
+                object.extension = $root.mcs_proto.Extension.toObject(message.extension, options, q + 1);
             return object;
         };
 
@@ -3143,7 +3353,7 @@ $root.mcs_proto = (function() {
         function Setting(properties) {
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
+                    if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         }
 
@@ -3184,9 +3394,13 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        Setting.encode = function encode(message, writer) {
+        Setting.encode = function encode(message, writer, q) {
             if (!writer)
                 writer = $Writer.create();
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             writer.uint32(/* id 1, wireType 2 =*/10).string(message.name);
             writer.uint32(/* id 2, wireType 2 =*/18).string(message.value);
             return writer;
@@ -3202,7 +3416,7 @@ $root.mcs_proto = (function() {
          * @returns {$protobuf.Writer} Writer
          */
         Setting.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
+            return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
         };
 
         /**
@@ -3216,12 +3430,18 @@ $root.mcs_proto = (function() {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Setting.decode = function decode(reader, length) {
+        Setting.decode = function decode(reader, length, error, long) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
+            if (long === undefined)
+                long = 0;
+            if (long > $Reader.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.Setting();
             while (reader.pos < end) {
                 var tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.name = reader.string();
@@ -3232,13 +3452,13 @@ $root.mcs_proto = (function() {
                         break;
                     }
                 default:
-                    reader.skipType(tag & 7);
+                    reader.skipType(tag & 7, long);
                     break;
                 }
             }
-            if (!message.hasOwnProperty("name"))
+            if (!Object.hasOwnProperty.call(message, "name"))
                 throw $util.ProtocolError("missing required 'name'", { instance: message });
-            if (!message.hasOwnProperty("value"))
+            if (!Object.hasOwnProperty.call(message, "value"))
                 throw $util.ProtocolError("missing required 'value'", { instance: message });
             return message;
         };
@@ -3267,9 +3487,13 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        Setting.verify = function verify(message) {
+        Setting.verify = function verify(message, long) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                return "maximum nesting depth exceeded";
             if (!$util.isString(message.name))
                 return "name: string expected";
             if (!$util.isString(message.value))
@@ -3285,9 +3509,15 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} object Plain object
          * @returns {mcs_proto.Setting} Setting
          */
-        Setting.fromObject = function fromObject(object) {
+        Setting.fromObject = function fromObject(object, long) {
             if (object instanceof $root.mcs_proto.Setting)
                 return object;
+            if (!$util.isObject(object))
+                throw TypeError(".mcs_proto.Setting: object expected");
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var message = new $root.mcs_proto.Setting();
             if (object.name != null)
                 message.name = String(object.name);
@@ -3305,17 +3535,21 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        Setting.toObject = function toObject(message, options) {
+        Setting.toObject = function toObject(message, options, q) {
             if (!options)
                 options = {};
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             var object = {};
             if (options.defaults) {
                 object.name = "";
                 object.value = "";
             }
-            if (message.name != null && message.hasOwnProperty("name"))
+            if (message.name != null && Object.hasOwnProperty.call(message, "name"))
                 object.name = message.name;
-            if (message.value != null && message.hasOwnProperty("value"))
+            if (message.value != null && Object.hasOwnProperty.call(message, "value"))
                 object.value = message.value;
             return object;
         };
@@ -3371,7 +3605,7 @@ $root.mcs_proto = (function() {
         function HeartbeatStat(properties) {
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
+                    if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         }
 
@@ -3420,9 +3654,13 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        HeartbeatStat.encode = function encode(message, writer) {
+        HeartbeatStat.encode = function encode(message, writer, q) {
             if (!writer)
                 writer = $Writer.create();
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             writer.uint32(/* id 1, wireType 2 =*/10).string(message.ip);
             writer.uint32(/* id 2, wireType 0 =*/16).bool(message.timeout);
             writer.uint32(/* id 3, wireType 0 =*/24).int32(message.intervalMs);
@@ -3439,7 +3677,7 @@ $root.mcs_proto = (function() {
          * @returns {$protobuf.Writer} Writer
          */
         HeartbeatStat.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
+            return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
         };
 
         /**
@@ -3453,12 +3691,18 @@ $root.mcs_proto = (function() {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        HeartbeatStat.decode = function decode(reader, length) {
+        HeartbeatStat.decode = function decode(reader, length, error, long) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
+            if (long === undefined)
+                long = 0;
+            if (long > $Reader.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.HeartbeatStat();
             while (reader.pos < end) {
                 var tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.ip = reader.string();
@@ -3473,15 +3717,15 @@ $root.mcs_proto = (function() {
                         break;
                     }
                 default:
-                    reader.skipType(tag & 7);
+                    reader.skipType(tag & 7, long);
                     break;
                 }
             }
-            if (!message.hasOwnProperty("ip"))
+            if (!Object.hasOwnProperty.call(message, "ip"))
                 throw $util.ProtocolError("missing required 'ip'", { instance: message });
-            if (!message.hasOwnProperty("timeout"))
+            if (!Object.hasOwnProperty.call(message, "timeout"))
                 throw $util.ProtocolError("missing required 'timeout'", { instance: message });
-            if (!message.hasOwnProperty("intervalMs"))
+            if (!Object.hasOwnProperty.call(message, "intervalMs"))
                 throw $util.ProtocolError("missing required 'intervalMs'", { instance: message });
             return message;
         };
@@ -3510,9 +3754,13 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        HeartbeatStat.verify = function verify(message) {
+        HeartbeatStat.verify = function verify(message, long) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                return "maximum nesting depth exceeded";
             if (!$util.isString(message.ip))
                 return "ip: string expected";
             if (typeof message.timeout !== "boolean")
@@ -3530,9 +3778,15 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} object Plain object
          * @returns {mcs_proto.HeartbeatStat} HeartbeatStat
          */
-        HeartbeatStat.fromObject = function fromObject(object) {
+        HeartbeatStat.fromObject = function fromObject(object, long) {
             if (object instanceof $root.mcs_proto.HeartbeatStat)
                 return object;
+            if (!$util.isObject(object))
+                throw TypeError(".mcs_proto.HeartbeatStat: object expected");
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var message = new $root.mcs_proto.HeartbeatStat();
             if (object.ip != null)
                 message.ip = String(object.ip);
@@ -3552,20 +3806,24 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        HeartbeatStat.toObject = function toObject(message, options) {
+        HeartbeatStat.toObject = function toObject(message, options, q) {
             if (!options)
                 options = {};
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             var object = {};
             if (options.defaults) {
                 object.ip = "";
                 object.timeout = false;
                 object.intervalMs = 0;
             }
-            if (message.ip != null && message.hasOwnProperty("ip"))
+            if (message.ip != null && Object.hasOwnProperty.call(message, "ip"))
                 object.ip = message.ip;
-            if (message.timeout != null && message.hasOwnProperty("timeout"))
+            if (message.timeout != null && Object.hasOwnProperty.call(message, "timeout"))
                 object.timeout = message.timeout;
-            if (message.intervalMs != null && message.hasOwnProperty("intervalMs"))
+            if (message.intervalMs != null && Object.hasOwnProperty.call(message, "intervalMs"))
                 object.intervalMs = message.intervalMs;
             return object;
         };
@@ -3621,7 +3879,7 @@ $root.mcs_proto = (function() {
         function HeartbeatConfig(properties) {
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
+                    if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         }
 
@@ -3670,9 +3928,13 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        HeartbeatConfig.encode = function encode(message, writer) {
+        HeartbeatConfig.encode = function encode(message, writer, q) {
             if (!writer)
                 writer = $Writer.create();
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             if (message.uploadStat != null && Object.hasOwnProperty.call(message, "uploadStat"))
                 writer.uint32(/* id 1, wireType 0 =*/8).bool(message.uploadStat);
             if (message.ip != null && Object.hasOwnProperty.call(message, "ip"))
@@ -3692,7 +3954,7 @@ $root.mcs_proto = (function() {
          * @returns {$protobuf.Writer} Writer
          */
         HeartbeatConfig.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
+            return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
         };
 
         /**
@@ -3706,12 +3968,18 @@ $root.mcs_proto = (function() {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        HeartbeatConfig.decode = function decode(reader, length) {
+        HeartbeatConfig.decode = function decode(reader, length, error, long) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
+            if (long === undefined)
+                long = 0;
+            if (long > $Reader.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.HeartbeatConfig();
             while (reader.pos < end) {
                 var tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.uploadStat = reader.bool();
@@ -3726,7 +3994,7 @@ $root.mcs_proto = (function() {
                         break;
                     }
                 default:
-                    reader.skipType(tag & 7);
+                    reader.skipType(tag & 7, long);
                     break;
                 }
             }
@@ -3757,16 +4025,20 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        HeartbeatConfig.verify = function verify(message) {
+        HeartbeatConfig.verify = function verify(message, long) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
-            if (message.uploadStat != null && message.hasOwnProperty("uploadStat"))
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                return "maximum nesting depth exceeded";
+            if (message.uploadStat != null && Object.hasOwnProperty.call(message, "uploadStat"))
                 if (typeof message.uploadStat !== "boolean")
                     return "uploadStat: boolean expected";
-            if (message.ip != null && message.hasOwnProperty("ip"))
+            if (message.ip != null && Object.hasOwnProperty.call(message, "ip"))
                 if (!$util.isString(message.ip))
                     return "ip: string expected";
-            if (message.intervalMs != null && message.hasOwnProperty("intervalMs"))
+            if (message.intervalMs != null && Object.hasOwnProperty.call(message, "intervalMs"))
                 if (!$util.isInteger(message.intervalMs))
                     return "intervalMs: integer expected";
             return null;
@@ -3780,9 +4052,15 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} object Plain object
          * @returns {mcs_proto.HeartbeatConfig} HeartbeatConfig
          */
-        HeartbeatConfig.fromObject = function fromObject(object) {
+        HeartbeatConfig.fromObject = function fromObject(object, long) {
             if (object instanceof $root.mcs_proto.HeartbeatConfig)
                 return object;
+            if (!$util.isObject(object))
+                throw TypeError(".mcs_proto.HeartbeatConfig: object expected");
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var message = new $root.mcs_proto.HeartbeatConfig();
             if (object.uploadStat != null)
                 message.uploadStat = Boolean(object.uploadStat);
@@ -3802,20 +4080,24 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        HeartbeatConfig.toObject = function toObject(message, options) {
+        HeartbeatConfig.toObject = function toObject(message, options, q) {
             if (!options)
                 options = {};
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             var object = {};
             if (options.defaults) {
                 object.uploadStat = false;
                 object.ip = "";
                 object.intervalMs = 0;
             }
-            if (message.uploadStat != null && message.hasOwnProperty("uploadStat"))
+            if (message.uploadStat != null && Object.hasOwnProperty.call(message, "uploadStat"))
                 object.uploadStat = message.uploadStat;
-            if (message.ip != null && message.hasOwnProperty("ip"))
+            if (message.ip != null && Object.hasOwnProperty.call(message, "ip"))
                 object.ip = message.ip;
-            if (message.intervalMs != null && message.hasOwnProperty("intervalMs"))
+            if (message.intervalMs != null && Object.hasOwnProperty.call(message, "intervalMs"))
                 object.intervalMs = message.intervalMs;
             return object;
         };
@@ -3875,7 +4157,7 @@ $root.mcs_proto = (function() {
         function ClientEvent(properties) {
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
+                    if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         }
 
@@ -3956,9 +4238,13 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        ClientEvent.encode = function encode(message, writer) {
+        ClientEvent.encode = function encode(message, writer, q) {
             if (!writer)
                 writer = $Writer.create();
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             if (message.type != null && Object.hasOwnProperty.call(message, "type"))
                 writer.uint32(/* id 1, wireType 0 =*/8).int32(message.type);
             if (message.numberDiscardedEvents != null && Object.hasOwnProperty.call(message, "numberDiscardedEvents"))
@@ -3986,7 +4272,7 @@ $root.mcs_proto = (function() {
          * @returns {$protobuf.Writer} Writer
          */
         ClientEvent.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
+            return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
         };
 
         /**
@@ -4000,12 +4286,18 @@ $root.mcs_proto = (function() {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        ClientEvent.decode = function decode(reader, length) {
+        ClientEvent.decode = function decode(reader, length, error, long) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
+            if (long === undefined)
+                long = 0;
+            if (long > $Reader.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.ClientEvent();
             while (reader.pos < end) {
                 var tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.type = reader.int32();
@@ -4036,7 +4328,7 @@ $root.mcs_proto = (function() {
                         break;
                     }
                 default:
-                    reader.skipType(tag & 7);
+                    reader.skipType(tag & 7, long);
                     break;
                 }
             }
@@ -4067,10 +4359,14 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        ClientEvent.verify = function verify(message) {
+        ClientEvent.verify = function verify(message, long) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
-            if (message.type != null && message.hasOwnProperty("type"))
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                return "maximum nesting depth exceeded";
+            if (message.type != null && Object.hasOwnProperty.call(message, "type"))
                 switch (message.type) {
                 default:
                     return "type: enum value expected";
@@ -4080,22 +4376,22 @@ $root.mcs_proto = (function() {
                 case 3:
                     break;
                 }
-            if (message.numberDiscardedEvents != null && message.hasOwnProperty("numberDiscardedEvents"))
+            if (message.numberDiscardedEvents != null && Object.hasOwnProperty.call(message, "numberDiscardedEvents"))
                 if (!$util.isInteger(message.numberDiscardedEvents))
                     return "numberDiscardedEvents: integer expected";
-            if (message.networkType != null && message.hasOwnProperty("networkType"))
+            if (message.networkType != null && Object.hasOwnProperty.call(message, "networkType"))
                 if (!$util.isInteger(message.networkType))
                     return "networkType: integer expected";
-            if (message.timeConnectionStartedMs != null && message.hasOwnProperty("timeConnectionStartedMs"))
+            if (message.timeConnectionStartedMs != null && Object.hasOwnProperty.call(message, "timeConnectionStartedMs"))
                 if (!$util.isInteger(message.timeConnectionStartedMs) && !(message.timeConnectionStartedMs && $util.isInteger(message.timeConnectionStartedMs.low) && $util.isInteger(message.timeConnectionStartedMs.high)))
                     return "timeConnectionStartedMs: integer|Long expected";
-            if (message.timeConnectionEndedMs != null && message.hasOwnProperty("timeConnectionEndedMs"))
+            if (message.timeConnectionEndedMs != null && Object.hasOwnProperty.call(message, "timeConnectionEndedMs"))
                 if (!$util.isInteger(message.timeConnectionEndedMs) && !(message.timeConnectionEndedMs && $util.isInteger(message.timeConnectionEndedMs.low) && $util.isInteger(message.timeConnectionEndedMs.high)))
                     return "timeConnectionEndedMs: integer|Long expected";
-            if (message.errorCode != null && message.hasOwnProperty("errorCode"))
+            if (message.errorCode != null && Object.hasOwnProperty.call(message, "errorCode"))
                 if (!$util.isInteger(message.errorCode))
                     return "errorCode: integer expected";
-            if (message.timeConnectionEstablishedMs != null && message.hasOwnProperty("timeConnectionEstablishedMs"))
+            if (message.timeConnectionEstablishedMs != null && Object.hasOwnProperty.call(message, "timeConnectionEstablishedMs"))
                 if (!$util.isInteger(message.timeConnectionEstablishedMs) && !(message.timeConnectionEstablishedMs && $util.isInteger(message.timeConnectionEstablishedMs.low) && $util.isInteger(message.timeConnectionEstablishedMs.high)))
                     return "timeConnectionEstablishedMs: integer|Long expected";
             return null;
@@ -4109,9 +4405,15 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} object Plain object
          * @returns {mcs_proto.ClientEvent} ClientEvent
          */
-        ClientEvent.fromObject = function fromObject(object) {
+        ClientEvent.fromObject = function fromObject(object, long) {
             if (object instanceof $root.mcs_proto.ClientEvent)
                 return object;
+            if (!$util.isObject(object))
+                throw TypeError(".mcs_proto.ClientEvent: object expected");
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var message = new $root.mcs_proto.ClientEvent();
             switch (object.type) {
             default:
@@ -4143,7 +4445,7 @@ $root.mcs_proto = (function() {
                 message.networkType = object.networkType | 0;
             if (object.timeConnectionStartedMs != null)
                 if ($util.Long)
-                    (message.timeConnectionStartedMs = $util.Long.fromValue(object.timeConnectionStartedMs)).unsigned = true;
+                    message.timeConnectionStartedMs = $util.Long.fromValue(object.timeConnectionStartedMs, true);
                 else if (typeof object.timeConnectionStartedMs === "string")
                     message.timeConnectionStartedMs = parseInt(object.timeConnectionStartedMs, 10);
                 else if (typeof object.timeConnectionStartedMs === "number")
@@ -4152,7 +4454,7 @@ $root.mcs_proto = (function() {
                     message.timeConnectionStartedMs = new $util.LongBits(object.timeConnectionStartedMs.low >>> 0, object.timeConnectionStartedMs.high >>> 0).toNumber(true);
             if (object.timeConnectionEndedMs != null)
                 if ($util.Long)
-                    (message.timeConnectionEndedMs = $util.Long.fromValue(object.timeConnectionEndedMs)).unsigned = true;
+                    message.timeConnectionEndedMs = $util.Long.fromValue(object.timeConnectionEndedMs, true);
                 else if (typeof object.timeConnectionEndedMs === "string")
                     message.timeConnectionEndedMs = parseInt(object.timeConnectionEndedMs, 10);
                 else if (typeof object.timeConnectionEndedMs === "number")
@@ -4163,7 +4465,7 @@ $root.mcs_proto = (function() {
                 message.errorCode = object.errorCode | 0;
             if (object.timeConnectionEstablishedMs != null)
                 if ($util.Long)
-                    (message.timeConnectionEstablishedMs = $util.Long.fromValue(object.timeConnectionEstablishedMs)).unsigned = true;
+                    message.timeConnectionEstablishedMs = $util.Long.fromValue(object.timeConnectionEstablishedMs, true);
                 else if (typeof object.timeConnectionEstablishedMs === "string")
                     message.timeConnectionEstablishedMs = parseInt(object.timeConnectionEstablishedMs, 10);
                 else if (typeof object.timeConnectionEstablishedMs === "number")
@@ -4182,9 +4484,13 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        ClientEvent.toObject = function toObject(message, options) {
+        ClientEvent.toObject = function toObject(message, options, q) {
             if (!options)
                 options = {};
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             var object = {};
             if (options.defaults) {
                 object.type = options.enums === String ? "UNKNOWN" : 0;
@@ -4192,41 +4498,47 @@ $root.mcs_proto = (function() {
                 object.networkType = 0;
                 if ($util.Long) {
                     var long = new $util.Long(0, 0, true);
-                    object.timeConnectionStartedMs = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    object.timeConnectionStartedMs = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : typeof BigInt !== "undefined" && options.longs === BigInt ? long.toBigInt() : long;
                 } else
-                    object.timeConnectionStartedMs = options.longs === String ? "0" : 0;
+                    object.timeConnectionStartedMs = options.longs === String ? "0" : typeof BigInt !== "undefined" && options.longs === BigInt ? BigInt("0") : 0;
                 if ($util.Long) {
                     var long = new $util.Long(0, 0, true);
-                    object.timeConnectionEndedMs = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    object.timeConnectionEndedMs = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : typeof BigInt !== "undefined" && options.longs === BigInt ? long.toBigInt() : long;
                 } else
-                    object.timeConnectionEndedMs = options.longs === String ? "0" : 0;
+                    object.timeConnectionEndedMs = options.longs === String ? "0" : typeof BigInt !== "undefined" && options.longs === BigInt ? BigInt("0") : 0;
                 object.errorCode = 0;
                 if ($util.Long) {
                     var long = new $util.Long(0, 0, true);
-                    object.timeConnectionEstablishedMs = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    object.timeConnectionEstablishedMs = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : typeof BigInt !== "undefined" && options.longs === BigInt ? long.toBigInt() : long;
                 } else
-                    object.timeConnectionEstablishedMs = options.longs === String ? "0" : 0;
+                    object.timeConnectionEstablishedMs = options.longs === String ? "0" : typeof BigInt !== "undefined" && options.longs === BigInt ? BigInt("0") : 0;
             }
-            if (message.type != null && message.hasOwnProperty("type"))
+            if (message.type != null && Object.hasOwnProperty.call(message, "type"))
                 object.type = options.enums === String ? $root.mcs_proto.ClientEvent.Type[message.type] === undefined ? message.type : $root.mcs_proto.ClientEvent.Type[message.type] : message.type;
-            if (message.numberDiscardedEvents != null && message.hasOwnProperty("numberDiscardedEvents"))
+            if (message.numberDiscardedEvents != null && Object.hasOwnProperty.call(message, "numberDiscardedEvents"))
                 object.numberDiscardedEvents = message.numberDiscardedEvents;
-            if (message.networkType != null && message.hasOwnProperty("networkType"))
+            if (message.networkType != null && Object.hasOwnProperty.call(message, "networkType"))
                 object.networkType = message.networkType;
-            if (message.timeConnectionStartedMs != null && message.hasOwnProperty("timeConnectionStartedMs"))
-                if (typeof message.timeConnectionStartedMs === "number")
+            if (message.timeConnectionStartedMs != null && Object.hasOwnProperty.call(message, "timeConnectionStartedMs"))
+                if (typeof BigInt !== "undefined" && options.longs === BigInt)
+                    object.timeConnectionStartedMs = typeof message.timeConnectionStartedMs === "number" ? BigInt(message.timeConnectionStartedMs) : $util.Long.fromBits(message.timeConnectionStartedMs.low >>> 0, message.timeConnectionStartedMs.high >>> 0, true).toBigInt();
+                else if (typeof message.timeConnectionStartedMs === "number")
                     object.timeConnectionStartedMs = options.longs === String ? String(message.timeConnectionStartedMs) : message.timeConnectionStartedMs;
                 else
                     object.timeConnectionStartedMs = options.longs === String ? $util.Long.prototype.toString.call(message.timeConnectionStartedMs) : options.longs === Number ? new $util.LongBits(message.timeConnectionStartedMs.low >>> 0, message.timeConnectionStartedMs.high >>> 0).toNumber(true) : message.timeConnectionStartedMs;
-            if (message.timeConnectionEndedMs != null && message.hasOwnProperty("timeConnectionEndedMs"))
-                if (typeof message.timeConnectionEndedMs === "number")
+            if (message.timeConnectionEndedMs != null && Object.hasOwnProperty.call(message, "timeConnectionEndedMs"))
+                if (typeof BigInt !== "undefined" && options.longs === BigInt)
+                    object.timeConnectionEndedMs = typeof message.timeConnectionEndedMs === "number" ? BigInt(message.timeConnectionEndedMs) : $util.Long.fromBits(message.timeConnectionEndedMs.low >>> 0, message.timeConnectionEndedMs.high >>> 0, true).toBigInt();
+                else if (typeof message.timeConnectionEndedMs === "number")
                     object.timeConnectionEndedMs = options.longs === String ? String(message.timeConnectionEndedMs) : message.timeConnectionEndedMs;
                 else
                     object.timeConnectionEndedMs = options.longs === String ? $util.Long.prototype.toString.call(message.timeConnectionEndedMs) : options.longs === Number ? new $util.LongBits(message.timeConnectionEndedMs.low >>> 0, message.timeConnectionEndedMs.high >>> 0).toNumber(true) : message.timeConnectionEndedMs;
-            if (message.errorCode != null && message.hasOwnProperty("errorCode"))
+            if (message.errorCode != null && Object.hasOwnProperty.call(message, "errorCode"))
                 object.errorCode = message.errorCode;
-            if (message.timeConnectionEstablishedMs != null && message.hasOwnProperty("timeConnectionEstablishedMs"))
-                if (typeof message.timeConnectionEstablishedMs === "number")
+            if (message.timeConnectionEstablishedMs != null && Object.hasOwnProperty.call(message, "timeConnectionEstablishedMs"))
+                if (typeof BigInt !== "undefined" && options.longs === BigInt)
+                    object.timeConnectionEstablishedMs = typeof message.timeConnectionEstablishedMs === "number" ? BigInt(message.timeConnectionEstablishedMs) : $util.Long.fromBits(message.timeConnectionEstablishedMs.low >>> 0, message.timeConnectionEstablishedMs.high >>> 0, true).toBigInt();
+                else if (typeof message.timeConnectionEstablishedMs === "number")
                     object.timeConnectionEstablishedMs = options.longs === String ? String(message.timeConnectionEstablishedMs) : message.timeConnectionEstablishedMs;
                 else
                     object.timeConnectionEstablishedMs = options.longs === String ? $util.Long.prototype.toString.call(message.timeConnectionEstablishedMs) : options.longs === Number ? new $util.LongBits(message.timeConnectionEstablishedMs.low >>> 0, message.timeConnectionEstablishedMs.high >>> 0).toNumber(true) : message.timeConnectionEstablishedMs;
@@ -4319,7 +4631,7 @@ $root.mcs_proto = (function() {
             this.clientEvent = [];
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
+                    if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         }
 
@@ -4480,9 +4792,13 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        LoginRequest.encode = function encode(message, writer) {
+        LoginRequest.encode = function encode(message, writer, q) {
             if (!writer)
                 writer = $Writer.create();
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             writer.uint32(/* id 1, wireType 2 =*/10).string(message.id);
             writer.uint32(/* id 2, wireType 2 =*/18).string(message.domain);
             writer.uint32(/* id 3, wireType 2 =*/26).string(message.user);
@@ -4494,14 +4810,14 @@ $root.mcs_proto = (function() {
                 writer.uint32(/* id 7, wireType 0 =*/56).int64(message.lastRmqId);
             if (message.setting != null && message.setting.length)
                 for (var i = 0; i < message.setting.length; ++i)
-                    $root.mcs_proto.Setting.encode(message.setting[i], writer.uint32(/* id 8, wireType 2 =*/66).fork()).ldelim();
+                    $root.mcs_proto.Setting.encode(message.setting[i], writer.uint32(/* id 8, wireType 2 =*/66).fork(), q + 1).ldelim();
             if (message.receivedPersistentId != null && message.receivedPersistentId.length)
                 for (var i = 0; i < message.receivedPersistentId.length; ++i)
                     writer.uint32(/* id 10, wireType 2 =*/82).string(message.receivedPersistentId[i]);
             if (message.adaptiveHeartbeat != null && Object.hasOwnProperty.call(message, "adaptiveHeartbeat"))
                 writer.uint32(/* id 12, wireType 0 =*/96).bool(message.adaptiveHeartbeat);
             if (message.heartbeatStat != null && Object.hasOwnProperty.call(message, "heartbeatStat"))
-                $root.mcs_proto.HeartbeatStat.encode(message.heartbeatStat, writer.uint32(/* id 13, wireType 2 =*/106).fork()).ldelim();
+                $root.mcs_proto.HeartbeatStat.encode(message.heartbeatStat, writer.uint32(/* id 13, wireType 2 =*/106).fork(), q + 1).ldelim();
             if (message.useRmq2 != null && Object.hasOwnProperty.call(message, "useRmq2"))
                 writer.uint32(/* id 14, wireType 0 =*/112).bool(message.useRmq2);
             if (message.accountId != null && Object.hasOwnProperty.call(message, "accountId"))
@@ -4514,7 +4830,7 @@ $root.mcs_proto = (function() {
                 writer.uint32(/* id 18, wireType 0 =*/144).int64(message.status);
             if (message.clientEvent != null && message.clientEvent.length)
                 for (var i = 0; i < message.clientEvent.length; ++i)
-                    $root.mcs_proto.ClientEvent.encode(message.clientEvent[i], writer.uint32(/* id 22, wireType 2 =*/178).fork()).ldelim();
+                    $root.mcs_proto.ClientEvent.encode(message.clientEvent[i], writer.uint32(/* id 22, wireType 2 =*/178).fork(), q + 1).ldelim();
             return writer;
         };
 
@@ -4528,7 +4844,7 @@ $root.mcs_proto = (function() {
          * @returns {$protobuf.Writer} Writer
          */
         LoginRequest.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
+            return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
         };
 
         /**
@@ -4542,12 +4858,18 @@ $root.mcs_proto = (function() {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        LoginRequest.decode = function decode(reader, length) {
+        LoginRequest.decode = function decode(reader, length, error, long) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
+            if (long === undefined)
+                long = 0;
+            if (long > $Reader.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.LoginRequest();
             while (reader.pos < end) {
                 var tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.id = reader.string();
@@ -4580,7 +4902,7 @@ $root.mcs_proto = (function() {
                 case 8: {
                         if (!(message.setting && message.setting.length))
                             message.setting = [];
-                        message.setting.push($root.mcs_proto.Setting.decode(reader, reader.uint32()));
+                        message.setting.push($root.mcs_proto.Setting.decode(reader, reader.uint32(), undefined, long + 1));
                         break;
                     }
                 case 10: {
@@ -4594,7 +4916,7 @@ $root.mcs_proto = (function() {
                         break;
                     }
                 case 13: {
-                        message.heartbeatStat = $root.mcs_proto.HeartbeatStat.decode(reader, reader.uint32());
+                        message.heartbeatStat = $root.mcs_proto.HeartbeatStat.decode(reader, reader.uint32(), undefined, long + 1);
                         break;
                     }
                 case 14: {
@@ -4620,23 +4942,23 @@ $root.mcs_proto = (function() {
                 case 22: {
                         if (!(message.clientEvent && message.clientEvent.length))
                             message.clientEvent = [];
-                        message.clientEvent.push($root.mcs_proto.ClientEvent.decode(reader, reader.uint32()));
+                        message.clientEvent.push($root.mcs_proto.ClientEvent.decode(reader, reader.uint32(), undefined, long + 1));
                         break;
                     }
                 default:
-                    reader.skipType(tag & 7);
+                    reader.skipType(tag & 7, long);
                     break;
                 }
             }
-            if (!message.hasOwnProperty("id"))
+            if (!Object.hasOwnProperty.call(message, "id"))
                 throw $util.ProtocolError("missing required 'id'", { instance: message });
-            if (!message.hasOwnProperty("domain"))
+            if (!Object.hasOwnProperty.call(message, "domain"))
                 throw $util.ProtocolError("missing required 'domain'", { instance: message });
-            if (!message.hasOwnProperty("user"))
+            if (!Object.hasOwnProperty.call(message, "user"))
                 throw $util.ProtocolError("missing required 'user'", { instance: message });
-            if (!message.hasOwnProperty("resource"))
+            if (!Object.hasOwnProperty.call(message, "resource"))
                 throw $util.ProtocolError("missing required 'resource'", { instance: message });
-            if (!message.hasOwnProperty("authToken"))
+            if (!Object.hasOwnProperty.call(message, "authToken"))
                 throw $util.ProtocolError("missing required 'authToken'", { instance: message });
             return message;
         };
@@ -4665,9 +4987,13 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        LoginRequest.verify = function verify(message) {
+        LoginRequest.verify = function verify(message, long) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                return "maximum nesting depth exceeded";
             if (!$util.isString(message.id))
                 return "id: string expected";
             if (!$util.isString(message.domain))
@@ -4678,60 +5004,60 @@ $root.mcs_proto = (function() {
                 return "resource: string expected";
             if (!$util.isString(message.authToken))
                 return "authToken: string expected";
-            if (message.deviceId != null && message.hasOwnProperty("deviceId"))
+            if (message.deviceId != null && Object.hasOwnProperty.call(message, "deviceId"))
                 if (!$util.isString(message.deviceId))
                     return "deviceId: string expected";
-            if (message.lastRmqId != null && message.hasOwnProperty("lastRmqId"))
+            if (message.lastRmqId != null && Object.hasOwnProperty.call(message, "lastRmqId"))
                 if (!$util.isInteger(message.lastRmqId) && !(message.lastRmqId && $util.isInteger(message.lastRmqId.low) && $util.isInteger(message.lastRmqId.high)))
                     return "lastRmqId: integer|Long expected";
-            if (message.setting != null && message.hasOwnProperty("setting")) {
+            if (message.setting != null && Object.hasOwnProperty.call(message, "setting")) {
                 if (!Array.isArray(message.setting))
                     return "setting: array expected";
                 for (var i = 0; i < message.setting.length; ++i) {
-                    var error = $root.mcs_proto.Setting.verify(message.setting[i]);
+                    var error = $root.mcs_proto.Setting.verify(message.setting[i], long + 1);
                     if (error)
                         return "setting." + error;
                 }
             }
-            if (message.receivedPersistentId != null && message.hasOwnProperty("receivedPersistentId")) {
+            if (message.receivedPersistentId != null && Object.hasOwnProperty.call(message, "receivedPersistentId")) {
                 if (!Array.isArray(message.receivedPersistentId))
                     return "receivedPersistentId: array expected";
                 for (var i = 0; i < message.receivedPersistentId.length; ++i)
                     if (!$util.isString(message.receivedPersistentId[i]))
                         return "receivedPersistentId: string[] expected";
             }
-            if (message.adaptiveHeartbeat != null && message.hasOwnProperty("adaptiveHeartbeat"))
+            if (message.adaptiveHeartbeat != null && Object.hasOwnProperty.call(message, "adaptiveHeartbeat"))
                 if (typeof message.adaptiveHeartbeat !== "boolean")
                     return "adaptiveHeartbeat: boolean expected";
-            if (message.heartbeatStat != null && message.hasOwnProperty("heartbeatStat")) {
-                var error = $root.mcs_proto.HeartbeatStat.verify(message.heartbeatStat);
+            if (message.heartbeatStat != null && Object.hasOwnProperty.call(message, "heartbeatStat")) {
+                var error = $root.mcs_proto.HeartbeatStat.verify(message.heartbeatStat, long + 1);
                 if (error)
                     return "heartbeatStat." + error;
             }
-            if (message.useRmq2 != null && message.hasOwnProperty("useRmq2"))
+            if (message.useRmq2 != null && Object.hasOwnProperty.call(message, "useRmq2"))
                 if (typeof message.useRmq2 !== "boolean")
                     return "useRmq2: boolean expected";
-            if (message.accountId != null && message.hasOwnProperty("accountId"))
+            if (message.accountId != null && Object.hasOwnProperty.call(message, "accountId"))
                 if (!$util.isInteger(message.accountId) && !(message.accountId && $util.isInteger(message.accountId.low) && $util.isInteger(message.accountId.high)))
                     return "accountId: integer|Long expected";
-            if (message.authService != null && message.hasOwnProperty("authService"))
+            if (message.authService != null && Object.hasOwnProperty.call(message, "authService"))
                 switch (message.authService) {
                 default:
                     return "authService: enum value expected";
                 case 2:
                     break;
                 }
-            if (message.networkType != null && message.hasOwnProperty("networkType"))
+            if (message.networkType != null && Object.hasOwnProperty.call(message, "networkType"))
                 if (!$util.isInteger(message.networkType))
                     return "networkType: integer expected";
-            if (message.status != null && message.hasOwnProperty("status"))
+            if (message.status != null && Object.hasOwnProperty.call(message, "status"))
                 if (!$util.isInteger(message.status) && !(message.status && $util.isInteger(message.status.low) && $util.isInteger(message.status.high)))
                     return "status: integer|Long expected";
-            if (message.clientEvent != null && message.hasOwnProperty("clientEvent")) {
+            if (message.clientEvent != null && Object.hasOwnProperty.call(message, "clientEvent")) {
                 if (!Array.isArray(message.clientEvent))
                     return "clientEvent: array expected";
                 for (var i = 0; i < message.clientEvent.length; ++i) {
-                    var error = $root.mcs_proto.ClientEvent.verify(message.clientEvent[i]);
+                    var error = $root.mcs_proto.ClientEvent.verify(message.clientEvent[i], long + 1);
                     if (error)
                         return "clientEvent." + error;
                 }
@@ -4747,9 +5073,15 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} object Plain object
          * @returns {mcs_proto.LoginRequest} LoginRequest
          */
-        LoginRequest.fromObject = function fromObject(object) {
+        LoginRequest.fromObject = function fromObject(object, long) {
             if (object instanceof $root.mcs_proto.LoginRequest)
                 return object;
+            if (!$util.isObject(object))
+                throw TypeError(".mcs_proto.LoginRequest: object expected");
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var message = new $root.mcs_proto.LoginRequest();
             if (object.id != null)
                 message.id = String(object.id);
@@ -4765,7 +5097,7 @@ $root.mcs_proto = (function() {
                 message.deviceId = String(object.deviceId);
             if (object.lastRmqId != null)
                 if ($util.Long)
-                    (message.lastRmqId = $util.Long.fromValue(object.lastRmqId)).unsigned = false;
+                    message.lastRmqId = $util.Long.fromValue(object.lastRmqId, false);
                 else if (typeof object.lastRmqId === "string")
                     message.lastRmqId = parseInt(object.lastRmqId, 10);
                 else if (typeof object.lastRmqId === "number")
@@ -4777,9 +5109,9 @@ $root.mcs_proto = (function() {
                     throw TypeError(".mcs_proto.LoginRequest.setting: array expected");
                 message.setting = [];
                 for (var i = 0; i < object.setting.length; ++i) {
-                    if (typeof object.setting[i] !== "object")
+                    if (!$util.isObject(object.setting[i]))
                         throw TypeError(".mcs_proto.LoginRequest.setting: object expected");
-                    message.setting[i] = $root.mcs_proto.Setting.fromObject(object.setting[i]);
+                    message.setting[i] = $root.mcs_proto.Setting.fromObject(object.setting[i], long + 1);
                 }
             }
             if (object.receivedPersistentId) {
@@ -4792,15 +5124,15 @@ $root.mcs_proto = (function() {
             if (object.adaptiveHeartbeat != null)
                 message.adaptiveHeartbeat = Boolean(object.adaptiveHeartbeat);
             if (object.heartbeatStat != null) {
-                if (typeof object.heartbeatStat !== "object")
+                if (!$util.isObject(object.heartbeatStat))
                     throw TypeError(".mcs_proto.LoginRequest.heartbeatStat: object expected");
-                message.heartbeatStat = $root.mcs_proto.HeartbeatStat.fromObject(object.heartbeatStat);
+                message.heartbeatStat = $root.mcs_proto.HeartbeatStat.fromObject(object.heartbeatStat, long + 1);
             }
             if (object.useRmq2 != null)
                 message.useRmq2 = Boolean(object.useRmq2);
             if (object.accountId != null)
                 if ($util.Long)
-                    (message.accountId = $util.Long.fromValue(object.accountId)).unsigned = false;
+                    message.accountId = $util.Long.fromValue(object.accountId, false);
                 else if (typeof object.accountId === "string")
                     message.accountId = parseInt(object.accountId, 10);
                 else if (typeof object.accountId === "number")
@@ -4823,7 +5155,7 @@ $root.mcs_proto = (function() {
                 message.networkType = object.networkType | 0;
             if (object.status != null)
                 if ($util.Long)
-                    (message.status = $util.Long.fromValue(object.status)).unsigned = false;
+                    message.status = $util.Long.fromValue(object.status, false);
                 else if (typeof object.status === "string")
                     message.status = parseInt(object.status, 10);
                 else if (typeof object.status === "number")
@@ -4835,9 +5167,9 @@ $root.mcs_proto = (function() {
                     throw TypeError(".mcs_proto.LoginRequest.clientEvent: array expected");
                 message.clientEvent = [];
                 for (var i = 0; i < object.clientEvent.length; ++i) {
-                    if (typeof object.clientEvent[i] !== "object")
+                    if (!$util.isObject(object.clientEvent[i]))
                         throw TypeError(".mcs_proto.LoginRequest.clientEvent: object expected");
-                    message.clientEvent[i] = $root.mcs_proto.ClientEvent.fromObject(object.clientEvent[i]);
+                    message.clientEvent[i] = $root.mcs_proto.ClientEvent.fromObject(object.clientEvent[i], long + 1);
                 }
             }
             return message;
@@ -4852,9 +5184,13 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        LoginRequest.toObject = function toObject(message, options) {
+        LoginRequest.toObject = function toObject(message, options, q) {
             if (!options)
                 options = {};
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             var object = {};
             if (options.arrays || options.defaults) {
                 object.setting = [];
@@ -4870,76 +5206,82 @@ $root.mcs_proto = (function() {
                 object.deviceId = "";
                 if ($util.Long) {
                     var long = new $util.Long(0, 0, false);
-                    object.lastRmqId = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    object.lastRmqId = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : typeof BigInt !== "undefined" && options.longs === BigInt ? long.toBigInt() : long;
                 } else
-                    object.lastRmqId = options.longs === String ? "0" : 0;
+                    object.lastRmqId = options.longs === String ? "0" : typeof BigInt !== "undefined" && options.longs === BigInt ? BigInt("0") : 0;
                 object.adaptiveHeartbeat = false;
                 object.heartbeatStat = null;
                 object.useRmq2 = false;
                 if ($util.Long) {
                     var long = new $util.Long(0, 0, false);
-                    object.accountId = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    object.accountId = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : typeof BigInt !== "undefined" && options.longs === BigInt ? long.toBigInt() : long;
                 } else
-                    object.accountId = options.longs === String ? "0" : 0;
+                    object.accountId = options.longs === String ? "0" : typeof BigInt !== "undefined" && options.longs === BigInt ? BigInt("0") : 0;
                 object.authService = options.enums === String ? "ANDROID_ID" : 2;
                 object.networkType = 0;
                 if ($util.Long) {
                     var long = new $util.Long(0, 0, false);
-                    object.status = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    object.status = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : typeof BigInt !== "undefined" && options.longs === BigInt ? long.toBigInt() : long;
                 } else
-                    object.status = options.longs === String ? "0" : 0;
+                    object.status = options.longs === String ? "0" : typeof BigInt !== "undefined" && options.longs === BigInt ? BigInt("0") : 0;
             }
-            if (message.id != null && message.hasOwnProperty("id"))
+            if (message.id != null && Object.hasOwnProperty.call(message, "id"))
                 object.id = message.id;
-            if (message.domain != null && message.hasOwnProperty("domain"))
+            if (message.domain != null && Object.hasOwnProperty.call(message, "domain"))
                 object.domain = message.domain;
-            if (message.user != null && message.hasOwnProperty("user"))
+            if (message.user != null && Object.hasOwnProperty.call(message, "user"))
                 object.user = message.user;
-            if (message.resource != null && message.hasOwnProperty("resource"))
+            if (message.resource != null && Object.hasOwnProperty.call(message, "resource"))
                 object.resource = message.resource;
-            if (message.authToken != null && message.hasOwnProperty("authToken"))
+            if (message.authToken != null && Object.hasOwnProperty.call(message, "authToken"))
                 object.authToken = message.authToken;
-            if (message.deviceId != null && message.hasOwnProperty("deviceId"))
+            if (message.deviceId != null && Object.hasOwnProperty.call(message, "deviceId"))
                 object.deviceId = message.deviceId;
-            if (message.lastRmqId != null && message.hasOwnProperty("lastRmqId"))
-                if (typeof message.lastRmqId === "number")
+            if (message.lastRmqId != null && Object.hasOwnProperty.call(message, "lastRmqId"))
+                if (typeof BigInt !== "undefined" && options.longs === BigInt)
+                    object.lastRmqId = typeof message.lastRmqId === "number" ? BigInt(message.lastRmqId) : $util.Long.fromBits(message.lastRmqId.low >>> 0, message.lastRmqId.high >>> 0, false).toBigInt();
+                else if (typeof message.lastRmqId === "number")
                     object.lastRmqId = options.longs === String ? String(message.lastRmqId) : message.lastRmqId;
                 else
                     object.lastRmqId = options.longs === String ? $util.Long.prototype.toString.call(message.lastRmqId) : options.longs === Number ? new $util.LongBits(message.lastRmqId.low >>> 0, message.lastRmqId.high >>> 0).toNumber() : message.lastRmqId;
             if (message.setting && message.setting.length) {
                 object.setting = [];
                 for (var j = 0; j < message.setting.length; ++j)
-                    object.setting[j] = $root.mcs_proto.Setting.toObject(message.setting[j], options);
+                    object.setting[j] = $root.mcs_proto.Setting.toObject(message.setting[j], options, q + 1);
             }
             if (message.receivedPersistentId && message.receivedPersistentId.length) {
                 object.receivedPersistentId = [];
                 for (var j = 0; j < message.receivedPersistentId.length; ++j)
                     object.receivedPersistentId[j] = message.receivedPersistentId[j];
             }
-            if (message.adaptiveHeartbeat != null && message.hasOwnProperty("adaptiveHeartbeat"))
+            if (message.adaptiveHeartbeat != null && Object.hasOwnProperty.call(message, "adaptiveHeartbeat"))
                 object.adaptiveHeartbeat = message.adaptiveHeartbeat;
-            if (message.heartbeatStat != null && message.hasOwnProperty("heartbeatStat"))
-                object.heartbeatStat = $root.mcs_proto.HeartbeatStat.toObject(message.heartbeatStat, options);
-            if (message.useRmq2 != null && message.hasOwnProperty("useRmq2"))
+            if (message.heartbeatStat != null && Object.hasOwnProperty.call(message, "heartbeatStat"))
+                object.heartbeatStat = $root.mcs_proto.HeartbeatStat.toObject(message.heartbeatStat, options, q + 1);
+            if (message.useRmq2 != null && Object.hasOwnProperty.call(message, "useRmq2"))
                 object.useRmq2 = message.useRmq2;
-            if (message.accountId != null && message.hasOwnProperty("accountId"))
-                if (typeof message.accountId === "number")
+            if (message.accountId != null && Object.hasOwnProperty.call(message, "accountId"))
+                if (typeof BigInt !== "undefined" && options.longs === BigInt)
+                    object.accountId = typeof message.accountId === "number" ? BigInt(message.accountId) : $util.Long.fromBits(message.accountId.low >>> 0, message.accountId.high >>> 0, false).toBigInt();
+                else if (typeof message.accountId === "number")
                     object.accountId = options.longs === String ? String(message.accountId) : message.accountId;
                 else
                     object.accountId = options.longs === String ? $util.Long.prototype.toString.call(message.accountId) : options.longs === Number ? new $util.LongBits(message.accountId.low >>> 0, message.accountId.high >>> 0).toNumber() : message.accountId;
-            if (message.authService != null && message.hasOwnProperty("authService"))
+            if (message.authService != null && Object.hasOwnProperty.call(message, "authService"))
                 object.authService = options.enums === String ? $root.mcs_proto.LoginRequest.AuthService[message.authService] === undefined ? message.authService : $root.mcs_proto.LoginRequest.AuthService[message.authService] : message.authService;
-            if (message.networkType != null && message.hasOwnProperty("networkType"))
+            if (message.networkType != null && Object.hasOwnProperty.call(message, "networkType"))
                 object.networkType = message.networkType;
-            if (message.status != null && message.hasOwnProperty("status"))
-                if (typeof message.status === "number")
+            if (message.status != null && Object.hasOwnProperty.call(message, "status"))
+                if (typeof BigInt !== "undefined" && options.longs === BigInt)
+                    object.status = typeof message.status === "number" ? BigInt(message.status) : $util.Long.fromBits(message.status.low >>> 0, message.status.high >>> 0, false).toBigInt();
+                else if (typeof message.status === "number")
                     object.status = options.longs === String ? String(message.status) : message.status;
                 else
                     object.status = options.longs === String ? $util.Long.prototype.toString.call(message.status) : options.longs === Number ? new $util.LongBits(message.status.low >>> 0, message.status.high >>> 0).toNumber() : message.status;
             if (message.clientEvent && message.clientEvent.length) {
                 object.clientEvent = [];
                 for (var j = 0; j < message.clientEvent.length; ++j)
-                    object.clientEvent[j] = $root.mcs_proto.ClientEvent.toObject(message.clientEvent[j], options);
+                    object.clientEvent[j] = $root.mcs_proto.ClientEvent.toObject(message.clientEvent[j], options, q + 1);
             }
             return object;
         };
@@ -5013,7 +5355,7 @@ $root.mcs_proto = (function() {
             this.setting = [];
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
+                    if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         }
 
@@ -5102,23 +5444,27 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        LoginResponse.encode = function encode(message, writer) {
+        LoginResponse.encode = function encode(message, writer, q) {
             if (!writer)
                 writer = $Writer.create();
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             writer.uint32(/* id 1, wireType 2 =*/10).string(message.id);
             if (message.jid != null && Object.hasOwnProperty.call(message, "jid"))
                 writer.uint32(/* id 2, wireType 2 =*/18).string(message.jid);
             if (message.error != null && Object.hasOwnProperty.call(message, "error"))
-                $root.mcs_proto.ErrorInfo.encode(message.error, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+                $root.mcs_proto.ErrorInfo.encode(message.error, writer.uint32(/* id 3, wireType 2 =*/26).fork(), q + 1).ldelim();
             if (message.setting != null && message.setting.length)
                 for (var i = 0; i < message.setting.length; ++i)
-                    $root.mcs_proto.Setting.encode(message.setting[i], writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
+                    $root.mcs_proto.Setting.encode(message.setting[i], writer.uint32(/* id 4, wireType 2 =*/34).fork(), q + 1).ldelim();
             if (message.streamId != null && Object.hasOwnProperty.call(message, "streamId"))
                 writer.uint32(/* id 5, wireType 0 =*/40).int32(message.streamId);
             if (message.lastStreamIdReceived != null && Object.hasOwnProperty.call(message, "lastStreamIdReceived"))
                 writer.uint32(/* id 6, wireType 0 =*/48).int32(message.lastStreamIdReceived);
             if (message.heartbeatConfig != null && Object.hasOwnProperty.call(message, "heartbeatConfig"))
-                $root.mcs_proto.HeartbeatConfig.encode(message.heartbeatConfig, writer.uint32(/* id 7, wireType 2 =*/58).fork()).ldelim();
+                $root.mcs_proto.HeartbeatConfig.encode(message.heartbeatConfig, writer.uint32(/* id 7, wireType 2 =*/58).fork(), q + 1).ldelim();
             if (message.serverTimestamp != null && Object.hasOwnProperty.call(message, "serverTimestamp"))
                 writer.uint32(/* id 8, wireType 0 =*/64).int64(message.serverTimestamp);
             return writer;
@@ -5134,7 +5480,7 @@ $root.mcs_proto = (function() {
          * @returns {$protobuf.Writer} Writer
          */
         LoginResponse.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
+            return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
         };
 
         /**
@@ -5148,12 +5494,18 @@ $root.mcs_proto = (function() {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        LoginResponse.decode = function decode(reader, length) {
+        LoginResponse.decode = function decode(reader, length, error, long) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
+            if (long === undefined)
+                long = 0;
+            if (long > $Reader.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.LoginResponse();
             while (reader.pos < end) {
                 var tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.id = reader.string();
@@ -5164,13 +5516,13 @@ $root.mcs_proto = (function() {
                         break;
                     }
                 case 3: {
-                        message.error = $root.mcs_proto.ErrorInfo.decode(reader, reader.uint32());
+                        message.error = $root.mcs_proto.ErrorInfo.decode(reader, reader.uint32(), undefined, long + 1);
                         break;
                     }
                 case 4: {
                         if (!(message.setting && message.setting.length))
                             message.setting = [];
-                        message.setting.push($root.mcs_proto.Setting.decode(reader, reader.uint32()));
+                        message.setting.push($root.mcs_proto.Setting.decode(reader, reader.uint32(), undefined, long + 1));
                         break;
                     }
                 case 5: {
@@ -5182,7 +5534,7 @@ $root.mcs_proto = (function() {
                         break;
                     }
                 case 7: {
-                        message.heartbeatConfig = $root.mcs_proto.HeartbeatConfig.decode(reader, reader.uint32());
+                        message.heartbeatConfig = $root.mcs_proto.HeartbeatConfig.decode(reader, reader.uint32(), undefined, long + 1);
                         break;
                     }
                 case 8: {
@@ -5190,11 +5542,11 @@ $root.mcs_proto = (function() {
                         break;
                     }
                 default:
-                    reader.skipType(tag & 7);
+                    reader.skipType(tag & 7, long);
                     break;
                 }
             }
-            if (!message.hasOwnProperty("id"))
+            if (!Object.hasOwnProperty.call(message, "id"))
                 throw $util.ProtocolError("missing required 'id'", { instance: message });
             return message;
         };
@@ -5223,40 +5575,44 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        LoginResponse.verify = function verify(message) {
+        LoginResponse.verify = function verify(message, long) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                return "maximum nesting depth exceeded";
             if (!$util.isString(message.id))
                 return "id: string expected";
-            if (message.jid != null && message.hasOwnProperty("jid"))
+            if (message.jid != null && Object.hasOwnProperty.call(message, "jid"))
                 if (!$util.isString(message.jid))
                     return "jid: string expected";
-            if (message.error != null && message.hasOwnProperty("error")) {
-                var error = $root.mcs_proto.ErrorInfo.verify(message.error);
+            if (message.error != null && Object.hasOwnProperty.call(message, "error")) {
+                var error = $root.mcs_proto.ErrorInfo.verify(message.error, long + 1);
                 if (error)
                     return "error." + error;
             }
-            if (message.setting != null && message.hasOwnProperty("setting")) {
+            if (message.setting != null && Object.hasOwnProperty.call(message, "setting")) {
                 if (!Array.isArray(message.setting))
                     return "setting: array expected";
                 for (var i = 0; i < message.setting.length; ++i) {
-                    var error = $root.mcs_proto.Setting.verify(message.setting[i]);
+                    var error = $root.mcs_proto.Setting.verify(message.setting[i], long + 1);
                     if (error)
                         return "setting." + error;
                 }
             }
-            if (message.streamId != null && message.hasOwnProperty("streamId"))
+            if (message.streamId != null && Object.hasOwnProperty.call(message, "streamId"))
                 if (!$util.isInteger(message.streamId))
                     return "streamId: integer expected";
-            if (message.lastStreamIdReceived != null && message.hasOwnProperty("lastStreamIdReceived"))
+            if (message.lastStreamIdReceived != null && Object.hasOwnProperty.call(message, "lastStreamIdReceived"))
                 if (!$util.isInteger(message.lastStreamIdReceived))
                     return "lastStreamIdReceived: integer expected";
-            if (message.heartbeatConfig != null && message.hasOwnProperty("heartbeatConfig")) {
-                var error = $root.mcs_proto.HeartbeatConfig.verify(message.heartbeatConfig);
+            if (message.heartbeatConfig != null && Object.hasOwnProperty.call(message, "heartbeatConfig")) {
+                var error = $root.mcs_proto.HeartbeatConfig.verify(message.heartbeatConfig, long + 1);
                 if (error)
                     return "heartbeatConfig." + error;
             }
-            if (message.serverTimestamp != null && message.hasOwnProperty("serverTimestamp"))
+            if (message.serverTimestamp != null && Object.hasOwnProperty.call(message, "serverTimestamp"))
                 if (!$util.isInteger(message.serverTimestamp) && !(message.serverTimestamp && $util.isInteger(message.serverTimestamp.low) && $util.isInteger(message.serverTimestamp.high)))
                     return "serverTimestamp: integer|Long expected";
             return null;
@@ -5270,27 +5626,33 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} object Plain object
          * @returns {mcs_proto.LoginResponse} LoginResponse
          */
-        LoginResponse.fromObject = function fromObject(object) {
+        LoginResponse.fromObject = function fromObject(object, long) {
             if (object instanceof $root.mcs_proto.LoginResponse)
                 return object;
+            if (!$util.isObject(object))
+                throw TypeError(".mcs_proto.LoginResponse: object expected");
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var message = new $root.mcs_proto.LoginResponse();
             if (object.id != null)
                 message.id = String(object.id);
             if (object.jid != null)
                 message.jid = String(object.jid);
             if (object.error != null) {
-                if (typeof object.error !== "object")
+                if (!$util.isObject(object.error))
                     throw TypeError(".mcs_proto.LoginResponse.error: object expected");
-                message.error = $root.mcs_proto.ErrorInfo.fromObject(object.error);
+                message.error = $root.mcs_proto.ErrorInfo.fromObject(object.error, long + 1);
             }
             if (object.setting) {
                 if (!Array.isArray(object.setting))
                     throw TypeError(".mcs_proto.LoginResponse.setting: array expected");
                 message.setting = [];
                 for (var i = 0; i < object.setting.length; ++i) {
-                    if (typeof object.setting[i] !== "object")
+                    if (!$util.isObject(object.setting[i]))
                         throw TypeError(".mcs_proto.LoginResponse.setting: object expected");
-                    message.setting[i] = $root.mcs_proto.Setting.fromObject(object.setting[i]);
+                    message.setting[i] = $root.mcs_proto.Setting.fromObject(object.setting[i], long + 1);
                 }
             }
             if (object.streamId != null)
@@ -5298,13 +5660,13 @@ $root.mcs_proto = (function() {
             if (object.lastStreamIdReceived != null)
                 message.lastStreamIdReceived = object.lastStreamIdReceived | 0;
             if (object.heartbeatConfig != null) {
-                if (typeof object.heartbeatConfig !== "object")
+                if (!$util.isObject(object.heartbeatConfig))
                     throw TypeError(".mcs_proto.LoginResponse.heartbeatConfig: object expected");
-                message.heartbeatConfig = $root.mcs_proto.HeartbeatConfig.fromObject(object.heartbeatConfig);
+                message.heartbeatConfig = $root.mcs_proto.HeartbeatConfig.fromObject(object.heartbeatConfig, long + 1);
             }
             if (object.serverTimestamp != null)
                 if ($util.Long)
-                    (message.serverTimestamp = $util.Long.fromValue(object.serverTimestamp)).unsigned = false;
+                    message.serverTimestamp = $util.Long.fromValue(object.serverTimestamp, false);
                 else if (typeof object.serverTimestamp === "string")
                     message.serverTimestamp = parseInt(object.serverTimestamp, 10);
                 else if (typeof object.serverTimestamp === "number")
@@ -5323,9 +5685,13 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        LoginResponse.toObject = function toObject(message, options) {
+        LoginResponse.toObject = function toObject(message, options, q) {
             if (!options)
                 options = {};
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             var object = {};
             if (options.arrays || options.defaults)
                 object.setting = [];
@@ -5338,29 +5704,31 @@ $root.mcs_proto = (function() {
                 object.heartbeatConfig = null;
                 if ($util.Long) {
                     var long = new $util.Long(0, 0, false);
-                    object.serverTimestamp = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    object.serverTimestamp = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : typeof BigInt !== "undefined" && options.longs === BigInt ? long.toBigInt() : long;
                 } else
-                    object.serverTimestamp = options.longs === String ? "0" : 0;
+                    object.serverTimestamp = options.longs === String ? "0" : typeof BigInt !== "undefined" && options.longs === BigInt ? BigInt("0") : 0;
             }
-            if (message.id != null && message.hasOwnProperty("id"))
+            if (message.id != null && Object.hasOwnProperty.call(message, "id"))
                 object.id = message.id;
-            if (message.jid != null && message.hasOwnProperty("jid"))
+            if (message.jid != null && Object.hasOwnProperty.call(message, "jid"))
                 object.jid = message.jid;
-            if (message.error != null && message.hasOwnProperty("error"))
-                object.error = $root.mcs_proto.ErrorInfo.toObject(message.error, options);
+            if (message.error != null && Object.hasOwnProperty.call(message, "error"))
+                object.error = $root.mcs_proto.ErrorInfo.toObject(message.error, options, q + 1);
             if (message.setting && message.setting.length) {
                 object.setting = [];
                 for (var j = 0; j < message.setting.length; ++j)
-                    object.setting[j] = $root.mcs_proto.Setting.toObject(message.setting[j], options);
+                    object.setting[j] = $root.mcs_proto.Setting.toObject(message.setting[j], options, q + 1);
             }
-            if (message.streamId != null && message.hasOwnProperty("streamId"))
+            if (message.streamId != null && Object.hasOwnProperty.call(message, "streamId"))
                 object.streamId = message.streamId;
-            if (message.lastStreamIdReceived != null && message.hasOwnProperty("lastStreamIdReceived"))
+            if (message.lastStreamIdReceived != null && Object.hasOwnProperty.call(message, "lastStreamIdReceived"))
                 object.lastStreamIdReceived = message.lastStreamIdReceived;
-            if (message.heartbeatConfig != null && message.hasOwnProperty("heartbeatConfig"))
-                object.heartbeatConfig = $root.mcs_proto.HeartbeatConfig.toObject(message.heartbeatConfig, options);
-            if (message.serverTimestamp != null && message.hasOwnProperty("serverTimestamp"))
-                if (typeof message.serverTimestamp === "number")
+            if (message.heartbeatConfig != null && Object.hasOwnProperty.call(message, "heartbeatConfig"))
+                object.heartbeatConfig = $root.mcs_proto.HeartbeatConfig.toObject(message.heartbeatConfig, options, q + 1);
+            if (message.serverTimestamp != null && Object.hasOwnProperty.call(message, "serverTimestamp"))
+                if (typeof BigInt !== "undefined" && options.longs === BigInt)
+                    object.serverTimestamp = typeof message.serverTimestamp === "number" ? BigInt(message.serverTimestamp) : $util.Long.fromBits(message.serverTimestamp.low >>> 0, message.serverTimestamp.high >>> 0, false).toBigInt();
+                else if (typeof message.serverTimestamp === "number")
                     object.serverTimestamp = options.longs === String ? String(message.serverTimestamp) : message.serverTimestamp;
                 else
                     object.serverTimestamp = options.longs === String ? $util.Long.prototype.toString.call(message.serverTimestamp) : options.longs === Number ? new $util.LongBits(message.serverTimestamp.low >>> 0, message.serverTimestamp.high >>> 0).toNumber() : message.serverTimestamp;
@@ -5417,7 +5785,7 @@ $root.mcs_proto = (function() {
         function StreamErrorStanza(properties) {
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
+                    if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         }
 
@@ -5458,9 +5826,13 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        StreamErrorStanza.encode = function encode(message, writer) {
+        StreamErrorStanza.encode = function encode(message, writer, q) {
             if (!writer)
                 writer = $Writer.create();
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             writer.uint32(/* id 1, wireType 2 =*/10).string(message.type);
             if (message.text != null && Object.hasOwnProperty.call(message, "text"))
                 writer.uint32(/* id 2, wireType 2 =*/18).string(message.text);
@@ -5477,7 +5849,7 @@ $root.mcs_proto = (function() {
          * @returns {$protobuf.Writer} Writer
          */
         StreamErrorStanza.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
+            return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
         };
 
         /**
@@ -5491,12 +5863,18 @@ $root.mcs_proto = (function() {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        StreamErrorStanza.decode = function decode(reader, length) {
+        StreamErrorStanza.decode = function decode(reader, length, error, long) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
+            if (long === undefined)
+                long = 0;
+            if (long > $Reader.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.StreamErrorStanza();
             while (reader.pos < end) {
                 var tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.type = reader.string();
@@ -5507,11 +5885,11 @@ $root.mcs_proto = (function() {
                         break;
                     }
                 default:
-                    reader.skipType(tag & 7);
+                    reader.skipType(tag & 7, long);
                     break;
                 }
             }
-            if (!message.hasOwnProperty("type"))
+            if (!Object.hasOwnProperty.call(message, "type"))
                 throw $util.ProtocolError("missing required 'type'", { instance: message });
             return message;
         };
@@ -5540,12 +5918,16 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        StreamErrorStanza.verify = function verify(message) {
+        StreamErrorStanza.verify = function verify(message, long) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                return "maximum nesting depth exceeded";
             if (!$util.isString(message.type))
                 return "type: string expected";
-            if (message.text != null && message.hasOwnProperty("text"))
+            if (message.text != null && Object.hasOwnProperty.call(message, "text"))
                 if (!$util.isString(message.text))
                     return "text: string expected";
             return null;
@@ -5559,9 +5941,15 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} object Plain object
          * @returns {mcs_proto.StreamErrorStanza} StreamErrorStanza
          */
-        StreamErrorStanza.fromObject = function fromObject(object) {
+        StreamErrorStanza.fromObject = function fromObject(object, long) {
             if (object instanceof $root.mcs_proto.StreamErrorStanza)
                 return object;
+            if (!$util.isObject(object))
+                throw TypeError(".mcs_proto.StreamErrorStanza: object expected");
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var message = new $root.mcs_proto.StreamErrorStanza();
             if (object.type != null)
                 message.type = String(object.type);
@@ -5579,17 +5967,21 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        StreamErrorStanza.toObject = function toObject(message, options) {
+        StreamErrorStanza.toObject = function toObject(message, options, q) {
             if (!options)
                 options = {};
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             var object = {};
             if (options.defaults) {
                 object.type = "";
                 object.text = "";
             }
-            if (message.type != null && message.hasOwnProperty("type"))
+            if (message.type != null && Object.hasOwnProperty.call(message, "type"))
                 object.type = message.type;
-            if (message.text != null && message.hasOwnProperty("text"))
+            if (message.text != null && Object.hasOwnProperty.call(message, "text"))
                 object.text = message.text;
             return object;
         };
@@ -5642,7 +6034,7 @@ $root.mcs_proto = (function() {
         function Close(properties) {
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
+                    if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         }
 
@@ -5667,9 +6059,13 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        Close.encode = function encode(message, writer) {
+        Close.encode = function encode(message, writer, q) {
             if (!writer)
                 writer = $Writer.create();
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             return writer;
         };
 
@@ -5683,7 +6079,7 @@ $root.mcs_proto = (function() {
          * @returns {$protobuf.Writer} Writer
          */
         Close.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
+            return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
         };
 
         /**
@@ -5697,15 +6093,21 @@ $root.mcs_proto = (function() {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Close.decode = function decode(reader, length) {
+        Close.decode = function decode(reader, length, error, long) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
+            if (long === undefined)
+                long = 0;
+            if (long > $Reader.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.Close();
             while (reader.pos < end) {
                 var tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 default:
-                    reader.skipType(tag & 7);
+                    reader.skipType(tag & 7, long);
                     break;
                 }
             }
@@ -5736,9 +6138,13 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        Close.verify = function verify(message) {
+        Close.verify = function verify(message, long) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                return "maximum nesting depth exceeded";
             return null;
         };
 
@@ -5750,7 +6156,7 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} object Plain object
          * @returns {mcs_proto.Close} Close
          */
-        Close.fromObject = function fromObject(object) {
+        Close.fromObject = function fromObject(object, long) {
             if (object instanceof $root.mcs_proto.Close)
                 return object;
             return new $root.mcs_proto.Close();
@@ -5819,7 +6225,7 @@ $root.mcs_proto = (function() {
         function Extension(properties) {
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
+                    if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         }
 
@@ -5860,9 +6266,13 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        Extension.encode = function encode(message, writer) {
+        Extension.encode = function encode(message, writer, q) {
             if (!writer)
                 writer = $Writer.create();
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             writer.uint32(/* id 1, wireType 0 =*/8).int32(message.id);
             writer.uint32(/* id 2, wireType 2 =*/18).bytes(message.data);
             return writer;
@@ -5878,7 +6288,7 @@ $root.mcs_proto = (function() {
          * @returns {$protobuf.Writer} Writer
          */
         Extension.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
+            return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
         };
 
         /**
@@ -5892,12 +6302,18 @@ $root.mcs_proto = (function() {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Extension.decode = function decode(reader, length) {
+        Extension.decode = function decode(reader, length, error, long) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
+            if (long === undefined)
+                long = 0;
+            if (long > $Reader.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.Extension();
             while (reader.pos < end) {
                 var tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.id = reader.int32();
@@ -5908,13 +6324,13 @@ $root.mcs_proto = (function() {
                         break;
                     }
                 default:
-                    reader.skipType(tag & 7);
+                    reader.skipType(tag & 7, long);
                     break;
                 }
             }
-            if (!message.hasOwnProperty("id"))
+            if (!Object.hasOwnProperty.call(message, "id"))
                 throw $util.ProtocolError("missing required 'id'", { instance: message });
-            if (!message.hasOwnProperty("data"))
+            if (!Object.hasOwnProperty.call(message, "data"))
                 throw $util.ProtocolError("missing required 'data'", { instance: message });
             return message;
         };
@@ -5943,9 +6359,13 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        Extension.verify = function verify(message) {
+        Extension.verify = function verify(message, long) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                return "maximum nesting depth exceeded";
             if (!$util.isInteger(message.id))
                 return "id: integer expected";
             if (!(message.data && typeof message.data.length === "number" || $util.isString(message.data)))
@@ -5961,9 +6381,15 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} object Plain object
          * @returns {mcs_proto.Extension} Extension
          */
-        Extension.fromObject = function fromObject(object) {
+        Extension.fromObject = function fromObject(object, long) {
             if (object instanceof $root.mcs_proto.Extension)
                 return object;
+            if (!$util.isObject(object))
+                throw TypeError(".mcs_proto.Extension: object expected");
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var message = new $root.mcs_proto.Extension();
             if (object.id != null)
                 message.id = object.id | 0;
@@ -5984,9 +6410,13 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        Extension.toObject = function toObject(message, options) {
+        Extension.toObject = function toObject(message, options, q) {
             if (!options)
                 options = {};
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             var object = {};
             if (options.defaults) {
                 object.id = 0;
@@ -5998,9 +6428,9 @@ $root.mcs_proto = (function() {
                         object.data = $util.newBuffer(object.data);
                 }
             }
-            if (message.id != null && message.hasOwnProperty("id"))
+            if (message.id != null && Object.hasOwnProperty.call(message, "id"))
                 object.id = message.id;
-            if (message.data != null && message.hasOwnProperty("data"))
+            if (message.data != null && Object.hasOwnProperty.call(message, "data"))
                 object.data = options.bytes === String ? $util.base64.encode(message.data, 0, message.data.length) : options.bytes === Array ? Array.prototype.slice.call(message.data) : message.data;
             return object;
         };
@@ -6067,7 +6497,7 @@ $root.mcs_proto = (function() {
         function IqStanza(properties) {
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
+                    if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         }
 
@@ -6188,9 +6618,13 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        IqStanza.encode = function encode(message, writer) {
+        IqStanza.encode = function encode(message, writer, q) {
             if (!writer)
                 writer = $Writer.create();
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             if (message.rmqId != null && Object.hasOwnProperty.call(message, "rmqId"))
                 writer.uint32(/* id 1, wireType 0 =*/8).int64(message.rmqId);
             writer.uint32(/* id 2, wireType 0 =*/16).int32(message.type);
@@ -6200,9 +6634,9 @@ $root.mcs_proto = (function() {
             if (message.to != null && Object.hasOwnProperty.call(message, "to"))
                 writer.uint32(/* id 5, wireType 2 =*/42).string(message.to);
             if (message.error != null && Object.hasOwnProperty.call(message, "error"))
-                $root.mcs_proto.ErrorInfo.encode(message.error, writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
+                $root.mcs_proto.ErrorInfo.encode(message.error, writer.uint32(/* id 6, wireType 2 =*/50).fork(), q + 1).ldelim();
             if (message.extension != null && Object.hasOwnProperty.call(message, "extension"))
-                $root.mcs_proto.Extension.encode(message.extension, writer.uint32(/* id 7, wireType 2 =*/58).fork()).ldelim();
+                $root.mcs_proto.Extension.encode(message.extension, writer.uint32(/* id 7, wireType 2 =*/58).fork(), q + 1).ldelim();
             if (message.persistentId != null && Object.hasOwnProperty.call(message, "persistentId"))
                 writer.uint32(/* id 8, wireType 2 =*/66).string(message.persistentId);
             if (message.streamId != null && Object.hasOwnProperty.call(message, "streamId"))
@@ -6226,7 +6660,7 @@ $root.mcs_proto = (function() {
          * @returns {$protobuf.Writer} Writer
          */
         IqStanza.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
+            return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
         };
 
         /**
@@ -6240,12 +6674,18 @@ $root.mcs_proto = (function() {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        IqStanza.decode = function decode(reader, length) {
+        IqStanza.decode = function decode(reader, length, error, long) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
+            if (long === undefined)
+                long = 0;
+            if (long > $Reader.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.IqStanza();
             while (reader.pos < end) {
                 var tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.rmqId = reader.int64();
@@ -6268,11 +6708,11 @@ $root.mcs_proto = (function() {
                         break;
                     }
                 case 6: {
-                        message.error = $root.mcs_proto.ErrorInfo.decode(reader, reader.uint32());
+                        message.error = $root.mcs_proto.ErrorInfo.decode(reader, reader.uint32(), undefined, long + 1);
                         break;
                     }
                 case 7: {
-                        message.extension = $root.mcs_proto.Extension.decode(reader, reader.uint32());
+                        message.extension = $root.mcs_proto.Extension.decode(reader, reader.uint32(), undefined, long + 1);
                         break;
                     }
                 case 8: {
@@ -6296,13 +6736,13 @@ $root.mcs_proto = (function() {
                         break;
                     }
                 default:
-                    reader.skipType(tag & 7);
+                    reader.skipType(tag & 7, long);
                     break;
                 }
             }
-            if (!message.hasOwnProperty("type"))
+            if (!Object.hasOwnProperty.call(message, "type"))
                 throw $util.ProtocolError("missing required 'type'", { instance: message });
-            if (!message.hasOwnProperty("id"))
+            if (!Object.hasOwnProperty.call(message, "id"))
                 throw $util.ProtocolError("missing required 'id'", { instance: message });
             return message;
         };
@@ -6331,10 +6771,14 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        IqStanza.verify = function verify(message) {
+        IqStanza.verify = function verify(message, long) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
-            if (message.rmqId != null && message.hasOwnProperty("rmqId"))
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                return "maximum nesting depth exceeded";
+            if (message.rmqId != null && Object.hasOwnProperty.call(message, "rmqId"))
                 if (!$util.isInteger(message.rmqId) && !(message.rmqId && $util.isInteger(message.rmqId.low) && $util.isInteger(message.rmqId.high)))
                     return "rmqId: integer|Long expected";
             switch (message.type) {
@@ -6348,35 +6792,35 @@ $root.mcs_proto = (function() {
             }
             if (!$util.isString(message.id))
                 return "id: string expected";
-            if (message.from != null && message.hasOwnProperty("from"))
+            if (message.from != null && Object.hasOwnProperty.call(message, "from"))
                 if (!$util.isString(message.from))
                     return "from: string expected";
-            if (message.to != null && message.hasOwnProperty("to"))
+            if (message.to != null && Object.hasOwnProperty.call(message, "to"))
                 if (!$util.isString(message.to))
                     return "to: string expected";
-            if (message.error != null && message.hasOwnProperty("error")) {
-                var error = $root.mcs_proto.ErrorInfo.verify(message.error);
+            if (message.error != null && Object.hasOwnProperty.call(message, "error")) {
+                var error = $root.mcs_proto.ErrorInfo.verify(message.error, long + 1);
                 if (error)
                     return "error." + error;
             }
-            if (message.extension != null && message.hasOwnProperty("extension")) {
-                var error = $root.mcs_proto.Extension.verify(message.extension);
+            if (message.extension != null && Object.hasOwnProperty.call(message, "extension")) {
+                var error = $root.mcs_proto.Extension.verify(message.extension, long + 1);
                 if (error)
                     return "extension." + error;
             }
-            if (message.persistentId != null && message.hasOwnProperty("persistentId"))
+            if (message.persistentId != null && Object.hasOwnProperty.call(message, "persistentId"))
                 if (!$util.isString(message.persistentId))
                     return "persistentId: string expected";
-            if (message.streamId != null && message.hasOwnProperty("streamId"))
+            if (message.streamId != null && Object.hasOwnProperty.call(message, "streamId"))
                 if (!$util.isInteger(message.streamId))
                     return "streamId: integer expected";
-            if (message.lastStreamIdReceived != null && message.hasOwnProperty("lastStreamIdReceived"))
+            if (message.lastStreamIdReceived != null && Object.hasOwnProperty.call(message, "lastStreamIdReceived"))
                 if (!$util.isInteger(message.lastStreamIdReceived))
                     return "lastStreamIdReceived: integer expected";
-            if (message.accountId != null && message.hasOwnProperty("accountId"))
+            if (message.accountId != null && Object.hasOwnProperty.call(message, "accountId"))
                 if (!$util.isInteger(message.accountId) && !(message.accountId && $util.isInteger(message.accountId.low) && $util.isInteger(message.accountId.high)))
                     return "accountId: integer|Long expected";
-            if (message.status != null && message.hasOwnProperty("status"))
+            if (message.status != null && Object.hasOwnProperty.call(message, "status"))
                 if (!$util.isInteger(message.status) && !(message.status && $util.isInteger(message.status.low) && $util.isInteger(message.status.high)))
                     return "status: integer|Long expected";
             return null;
@@ -6390,13 +6834,19 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} object Plain object
          * @returns {mcs_proto.IqStanza} IqStanza
          */
-        IqStanza.fromObject = function fromObject(object) {
+        IqStanza.fromObject = function fromObject(object, long) {
             if (object instanceof $root.mcs_proto.IqStanza)
                 return object;
+            if (!$util.isObject(object))
+                throw TypeError(".mcs_proto.IqStanza: object expected");
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var message = new $root.mcs_proto.IqStanza();
             if (object.rmqId != null)
                 if ($util.Long)
-                    (message.rmqId = $util.Long.fromValue(object.rmqId)).unsigned = false;
+                    message.rmqId = $util.Long.fromValue(object.rmqId, false);
                 else if (typeof object.rmqId === "string")
                     message.rmqId = parseInt(object.rmqId, 10);
                 else if (typeof object.rmqId === "number")
@@ -6434,14 +6884,14 @@ $root.mcs_proto = (function() {
             if (object.to != null)
                 message.to = String(object.to);
             if (object.error != null) {
-                if (typeof object.error !== "object")
+                if (!$util.isObject(object.error))
                     throw TypeError(".mcs_proto.IqStanza.error: object expected");
-                message.error = $root.mcs_proto.ErrorInfo.fromObject(object.error);
+                message.error = $root.mcs_proto.ErrorInfo.fromObject(object.error, long + 1);
             }
             if (object.extension != null) {
-                if (typeof object.extension !== "object")
+                if (!$util.isObject(object.extension))
                     throw TypeError(".mcs_proto.IqStanza.extension: object expected");
-                message.extension = $root.mcs_proto.Extension.fromObject(object.extension);
+                message.extension = $root.mcs_proto.Extension.fromObject(object.extension, long + 1);
             }
             if (object.persistentId != null)
                 message.persistentId = String(object.persistentId);
@@ -6451,7 +6901,7 @@ $root.mcs_proto = (function() {
                 message.lastStreamIdReceived = object.lastStreamIdReceived | 0;
             if (object.accountId != null)
                 if ($util.Long)
-                    (message.accountId = $util.Long.fromValue(object.accountId)).unsigned = false;
+                    message.accountId = $util.Long.fromValue(object.accountId, false);
                 else if (typeof object.accountId === "string")
                     message.accountId = parseInt(object.accountId, 10);
                 else if (typeof object.accountId === "number")
@@ -6460,7 +6910,7 @@ $root.mcs_proto = (function() {
                     message.accountId = new $util.LongBits(object.accountId.low >>> 0, object.accountId.high >>> 0).toNumber();
             if (object.status != null)
                 if ($util.Long)
-                    (message.status = $util.Long.fromValue(object.status)).unsigned = false;
+                    message.status = $util.Long.fromValue(object.status, false);
                 else if (typeof object.status === "string")
                     message.status = parseInt(object.status, 10);
                 else if (typeof object.status === "number")
@@ -6479,16 +6929,20 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        IqStanza.toObject = function toObject(message, options) {
+        IqStanza.toObject = function toObject(message, options, q) {
             if (!options)
                 options = {};
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             var object = {};
             if (options.defaults) {
                 if ($util.Long) {
                     var long = new $util.Long(0, 0, false);
-                    object.rmqId = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    object.rmqId = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : typeof BigInt !== "undefined" && options.longs === BigInt ? long.toBigInt() : long;
                 } else
-                    object.rmqId = options.longs === String ? "0" : 0;
+                    object.rmqId = options.longs === String ? "0" : typeof BigInt !== "undefined" && options.longs === BigInt ? BigInt("0") : 0;
                 object.type = options.enums === String ? "GET" : 0;
                 object.id = "";
                 object.from = "";
@@ -6500,45 +6954,51 @@ $root.mcs_proto = (function() {
                 object.lastStreamIdReceived = 0;
                 if ($util.Long) {
                     var long = new $util.Long(0, 0, false);
-                    object.accountId = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    object.accountId = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : typeof BigInt !== "undefined" && options.longs === BigInt ? long.toBigInt() : long;
                 } else
-                    object.accountId = options.longs === String ? "0" : 0;
+                    object.accountId = options.longs === String ? "0" : typeof BigInt !== "undefined" && options.longs === BigInt ? BigInt("0") : 0;
                 if ($util.Long) {
                     var long = new $util.Long(0, 0, false);
-                    object.status = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    object.status = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : typeof BigInt !== "undefined" && options.longs === BigInt ? long.toBigInt() : long;
                 } else
-                    object.status = options.longs === String ? "0" : 0;
+                    object.status = options.longs === String ? "0" : typeof BigInt !== "undefined" && options.longs === BigInt ? BigInt("0") : 0;
             }
-            if (message.rmqId != null && message.hasOwnProperty("rmqId"))
-                if (typeof message.rmqId === "number")
+            if (message.rmqId != null && Object.hasOwnProperty.call(message, "rmqId"))
+                if (typeof BigInt !== "undefined" && options.longs === BigInt)
+                    object.rmqId = typeof message.rmqId === "number" ? BigInt(message.rmqId) : $util.Long.fromBits(message.rmqId.low >>> 0, message.rmqId.high >>> 0, false).toBigInt();
+                else if (typeof message.rmqId === "number")
                     object.rmqId = options.longs === String ? String(message.rmqId) : message.rmqId;
                 else
                     object.rmqId = options.longs === String ? $util.Long.prototype.toString.call(message.rmqId) : options.longs === Number ? new $util.LongBits(message.rmqId.low >>> 0, message.rmqId.high >>> 0).toNumber() : message.rmqId;
-            if (message.type != null && message.hasOwnProperty("type"))
+            if (message.type != null && Object.hasOwnProperty.call(message, "type"))
                 object.type = options.enums === String ? $root.mcs_proto.IqStanza.IqType[message.type] === undefined ? message.type : $root.mcs_proto.IqStanza.IqType[message.type] : message.type;
-            if (message.id != null && message.hasOwnProperty("id"))
+            if (message.id != null && Object.hasOwnProperty.call(message, "id"))
                 object.id = message.id;
-            if (message.from != null && message.hasOwnProperty("from"))
+            if (message.from != null && Object.hasOwnProperty.call(message, "from"))
                 object.from = message.from;
-            if (message.to != null && message.hasOwnProperty("to"))
+            if (message.to != null && Object.hasOwnProperty.call(message, "to"))
                 object.to = message.to;
-            if (message.error != null && message.hasOwnProperty("error"))
-                object.error = $root.mcs_proto.ErrorInfo.toObject(message.error, options);
-            if (message.extension != null && message.hasOwnProperty("extension"))
-                object.extension = $root.mcs_proto.Extension.toObject(message.extension, options);
-            if (message.persistentId != null && message.hasOwnProperty("persistentId"))
+            if (message.error != null && Object.hasOwnProperty.call(message, "error"))
+                object.error = $root.mcs_proto.ErrorInfo.toObject(message.error, options, q + 1);
+            if (message.extension != null && Object.hasOwnProperty.call(message, "extension"))
+                object.extension = $root.mcs_proto.Extension.toObject(message.extension, options, q + 1);
+            if (message.persistentId != null && Object.hasOwnProperty.call(message, "persistentId"))
                 object.persistentId = message.persistentId;
-            if (message.streamId != null && message.hasOwnProperty("streamId"))
+            if (message.streamId != null && Object.hasOwnProperty.call(message, "streamId"))
                 object.streamId = message.streamId;
-            if (message.lastStreamIdReceived != null && message.hasOwnProperty("lastStreamIdReceived"))
+            if (message.lastStreamIdReceived != null && Object.hasOwnProperty.call(message, "lastStreamIdReceived"))
                 object.lastStreamIdReceived = message.lastStreamIdReceived;
-            if (message.accountId != null && message.hasOwnProperty("accountId"))
-                if (typeof message.accountId === "number")
+            if (message.accountId != null && Object.hasOwnProperty.call(message, "accountId"))
+                if (typeof BigInt !== "undefined" && options.longs === BigInt)
+                    object.accountId = typeof message.accountId === "number" ? BigInt(message.accountId) : $util.Long.fromBits(message.accountId.low >>> 0, message.accountId.high >>> 0, false).toBigInt();
+                else if (typeof message.accountId === "number")
                     object.accountId = options.longs === String ? String(message.accountId) : message.accountId;
                 else
                     object.accountId = options.longs === String ? $util.Long.prototype.toString.call(message.accountId) : options.longs === Number ? new $util.LongBits(message.accountId.low >>> 0, message.accountId.high >>> 0).toNumber() : message.accountId;
-            if (message.status != null && message.hasOwnProperty("status"))
-                if (typeof message.status === "number")
+            if (message.status != null && Object.hasOwnProperty.call(message, "status"))
+                if (typeof BigInt !== "undefined" && options.longs === BigInt)
+                    object.status = typeof message.status === "number" ? BigInt(message.status) : $util.Long.fromBits(message.status.low >>> 0, message.status.high >>> 0, false).toBigInt();
+                else if (typeof message.status === "number")
                     object.status = options.longs === String ? String(message.status) : message.status;
                 else
                     object.status = options.longs === String ? $util.Long.prototype.toString.call(message.status) : options.longs === Number ? new $util.LongBits(message.status.low >>> 0, message.status.high >>> 0).toNumber() : message.status;
@@ -6613,7 +7073,7 @@ $root.mcs_proto = (function() {
         function AppData(properties) {
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
+                    if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         }
 
@@ -6654,9 +7114,13 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        AppData.encode = function encode(message, writer) {
+        AppData.encode = function encode(message, writer, q) {
             if (!writer)
                 writer = $Writer.create();
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             writer.uint32(/* id 1, wireType 2 =*/10).string(message.key);
             writer.uint32(/* id 2, wireType 2 =*/18).string(message.value);
             return writer;
@@ -6672,7 +7136,7 @@ $root.mcs_proto = (function() {
          * @returns {$protobuf.Writer} Writer
          */
         AppData.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
+            return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
         };
 
         /**
@@ -6686,12 +7150,18 @@ $root.mcs_proto = (function() {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        AppData.decode = function decode(reader, length) {
+        AppData.decode = function decode(reader, length, error, long) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
+            if (long === undefined)
+                long = 0;
+            if (long > $Reader.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.AppData();
             while (reader.pos < end) {
                 var tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.key = reader.string();
@@ -6702,13 +7172,13 @@ $root.mcs_proto = (function() {
                         break;
                     }
                 default:
-                    reader.skipType(tag & 7);
+                    reader.skipType(tag & 7, long);
                     break;
                 }
             }
-            if (!message.hasOwnProperty("key"))
+            if (!Object.hasOwnProperty.call(message, "key"))
                 throw $util.ProtocolError("missing required 'key'", { instance: message });
-            if (!message.hasOwnProperty("value"))
+            if (!Object.hasOwnProperty.call(message, "value"))
                 throw $util.ProtocolError("missing required 'value'", { instance: message });
             return message;
         };
@@ -6737,9 +7207,13 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        AppData.verify = function verify(message) {
+        AppData.verify = function verify(message, long) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                return "maximum nesting depth exceeded";
             if (!$util.isString(message.key))
                 return "key: string expected";
             if (!$util.isString(message.value))
@@ -6755,9 +7229,15 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} object Plain object
          * @returns {mcs_proto.AppData} AppData
          */
-        AppData.fromObject = function fromObject(object) {
+        AppData.fromObject = function fromObject(object, long) {
             if (object instanceof $root.mcs_proto.AppData)
                 return object;
+            if (!$util.isObject(object))
+                throw TypeError(".mcs_proto.AppData: object expected");
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var message = new $root.mcs_proto.AppData();
             if (object.key != null)
                 message.key = String(object.key);
@@ -6775,17 +7255,21 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        AppData.toObject = function toObject(message, options) {
+        AppData.toObject = function toObject(message, options, q) {
             if (!options)
                 options = {};
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             var object = {};
             if (options.defaults) {
                 object.key = "";
                 object.value = "";
             }
-            if (message.key != null && message.hasOwnProperty("key"))
+            if (message.key != null && Object.hasOwnProperty.call(message, "key"))
                 object.key = message.key;
-            if (message.value != null && message.hasOwnProperty("value"))
+            if (message.value != null && Object.hasOwnProperty.call(message, "value"))
                 object.value = message.value;
             return object;
         };
@@ -6857,7 +7341,7 @@ $root.mcs_proto = (function() {
             this.appData = [];
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
+                    if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         }
 
@@ -7026,9 +7510,13 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        DataMessageStanza.encode = function encode(message, writer) {
+        DataMessageStanza.encode = function encode(message, writer, q) {
             if (!writer)
                 writer = $Writer.create();
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             if (message.id != null && Object.hasOwnProperty.call(message, "id"))
                 writer.uint32(/* id 2, wireType 2 =*/18).string(message.id);
             writer.uint32(/* id 3, wireType 2 =*/26).string(message.from);
@@ -7039,7 +7527,7 @@ $root.mcs_proto = (function() {
                 writer.uint32(/* id 6, wireType 2 =*/50).string(message.token);
             if (message.appData != null && message.appData.length)
                 for (var i = 0; i < message.appData.length; ++i)
-                    $root.mcs_proto.AppData.encode(message.appData[i], writer.uint32(/* id 7, wireType 2 =*/58).fork()).ldelim();
+                    $root.mcs_proto.AppData.encode(message.appData[i], writer.uint32(/* id 7, wireType 2 =*/58).fork(), q + 1).ldelim();
             if (message.fromTrustedServer != null && Object.hasOwnProperty.call(message, "fromTrustedServer"))
                 writer.uint32(/* id 8, wireType 0 =*/64).bool(message.fromTrustedServer);
             if (message.persistentId != null && Object.hasOwnProperty.call(message, "persistentId"))
@@ -7077,7 +7565,7 @@ $root.mcs_proto = (function() {
          * @returns {$protobuf.Writer} Writer
          */
         DataMessageStanza.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
+            return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
         };
 
         /**
@@ -7091,12 +7579,18 @@ $root.mcs_proto = (function() {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        DataMessageStanza.decode = function decode(reader, length) {
+        DataMessageStanza.decode = function decode(reader, length, error, long) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
+            if (long === undefined)
+                long = 0;
+            if (long > $Reader.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.DataMessageStanza();
             while (reader.pos < end) {
                 var tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 2: {
                         message.id = reader.string();
@@ -7121,7 +7615,7 @@ $root.mcs_proto = (function() {
                 case 7: {
                         if (!(message.appData && message.appData.length))
                             message.appData = [];
-                        message.appData.push($root.mcs_proto.AppData.decode(reader, reader.uint32()));
+                        message.appData.push($root.mcs_proto.AppData.decode(reader, reader.uint32(), undefined, long + 1));
                         break;
                     }
                 case 8: {
@@ -7173,13 +7667,13 @@ $root.mcs_proto = (function() {
                         break;
                     }
                 default:
-                    reader.skipType(tag & 7);
+                    reader.skipType(tag & 7, long);
                     break;
                 }
             }
-            if (!message.hasOwnProperty("from"))
+            if (!Object.hasOwnProperty.call(message, "from"))
                 throw $util.ProtocolError("missing required 'from'", { instance: message });
-            if (!message.hasOwnProperty("category"))
+            if (!Object.hasOwnProperty.call(message, "category"))
                 throw $util.ProtocolError("missing required 'category'", { instance: message });
             return message;
         };
@@ -7208,65 +7702,69 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        DataMessageStanza.verify = function verify(message) {
+        DataMessageStanza.verify = function verify(message, long) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
-            if (message.id != null && message.hasOwnProperty("id"))
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                return "maximum nesting depth exceeded";
+            if (message.id != null && Object.hasOwnProperty.call(message, "id"))
                 if (!$util.isString(message.id))
                     return "id: string expected";
             if (!$util.isString(message.from))
                 return "from: string expected";
-            if (message.to != null && message.hasOwnProperty("to"))
+            if (message.to != null && Object.hasOwnProperty.call(message, "to"))
                 if (!$util.isString(message.to))
                     return "to: string expected";
             if (!$util.isString(message.category))
                 return "category: string expected";
-            if (message.token != null && message.hasOwnProperty("token"))
+            if (message.token != null && Object.hasOwnProperty.call(message, "token"))
                 if (!$util.isString(message.token))
                     return "token: string expected";
-            if (message.appData != null && message.hasOwnProperty("appData")) {
+            if (message.appData != null && Object.hasOwnProperty.call(message, "appData")) {
                 if (!Array.isArray(message.appData))
                     return "appData: array expected";
                 for (var i = 0; i < message.appData.length; ++i) {
-                    var error = $root.mcs_proto.AppData.verify(message.appData[i]);
+                    var error = $root.mcs_proto.AppData.verify(message.appData[i], long + 1);
                     if (error)
                         return "appData." + error;
                 }
             }
-            if (message.fromTrustedServer != null && message.hasOwnProperty("fromTrustedServer"))
+            if (message.fromTrustedServer != null && Object.hasOwnProperty.call(message, "fromTrustedServer"))
                 if (typeof message.fromTrustedServer !== "boolean")
                     return "fromTrustedServer: boolean expected";
-            if (message.persistentId != null && message.hasOwnProperty("persistentId"))
+            if (message.persistentId != null && Object.hasOwnProperty.call(message, "persistentId"))
                 if (!$util.isString(message.persistentId))
                     return "persistentId: string expected";
-            if (message.streamId != null && message.hasOwnProperty("streamId"))
+            if (message.streamId != null && Object.hasOwnProperty.call(message, "streamId"))
                 if (!$util.isInteger(message.streamId))
                     return "streamId: integer expected";
-            if (message.lastStreamIdReceived != null && message.hasOwnProperty("lastStreamIdReceived"))
+            if (message.lastStreamIdReceived != null && Object.hasOwnProperty.call(message, "lastStreamIdReceived"))
                 if (!$util.isInteger(message.lastStreamIdReceived))
                     return "lastStreamIdReceived: integer expected";
-            if (message.regId != null && message.hasOwnProperty("regId"))
+            if (message.regId != null && Object.hasOwnProperty.call(message, "regId"))
                 if (!$util.isString(message.regId))
                     return "regId: string expected";
-            if (message.deviceUserId != null && message.hasOwnProperty("deviceUserId"))
+            if (message.deviceUserId != null && Object.hasOwnProperty.call(message, "deviceUserId"))
                 if (!$util.isInteger(message.deviceUserId) && !(message.deviceUserId && $util.isInteger(message.deviceUserId.low) && $util.isInteger(message.deviceUserId.high)))
                     return "deviceUserId: integer|Long expected";
-            if (message.ttl != null && message.hasOwnProperty("ttl"))
+            if (message.ttl != null && Object.hasOwnProperty.call(message, "ttl"))
                 if (!$util.isInteger(message.ttl))
                     return "ttl: integer expected";
-            if (message.sent != null && message.hasOwnProperty("sent"))
+            if (message.sent != null && Object.hasOwnProperty.call(message, "sent"))
                 if (!$util.isInteger(message.sent) && !(message.sent && $util.isInteger(message.sent.low) && $util.isInteger(message.sent.high)))
                     return "sent: integer|Long expected";
-            if (message.queued != null && message.hasOwnProperty("queued"))
+            if (message.queued != null && Object.hasOwnProperty.call(message, "queued"))
                 if (!$util.isInteger(message.queued))
                     return "queued: integer expected";
-            if (message.status != null && message.hasOwnProperty("status"))
+            if (message.status != null && Object.hasOwnProperty.call(message, "status"))
                 if (!$util.isInteger(message.status) && !(message.status && $util.isInteger(message.status.low) && $util.isInteger(message.status.high)))
                     return "status: integer|Long expected";
-            if (message.rawData != null && message.hasOwnProperty("rawData"))
+            if (message.rawData != null && Object.hasOwnProperty.call(message, "rawData"))
                 if (!(message.rawData && typeof message.rawData.length === "number" || $util.isString(message.rawData)))
                     return "rawData: buffer expected";
-            if (message.immediateAck != null && message.hasOwnProperty("immediateAck"))
+            if (message.immediateAck != null && Object.hasOwnProperty.call(message, "immediateAck"))
                 if (typeof message.immediateAck !== "boolean")
                     return "immediateAck: boolean expected";
             return null;
@@ -7280,9 +7778,15 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} object Plain object
          * @returns {mcs_proto.DataMessageStanza} DataMessageStanza
          */
-        DataMessageStanza.fromObject = function fromObject(object) {
+        DataMessageStanza.fromObject = function fromObject(object, long) {
             if (object instanceof $root.mcs_proto.DataMessageStanza)
                 return object;
+            if (!$util.isObject(object))
+                throw TypeError(".mcs_proto.DataMessageStanza: object expected");
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var message = new $root.mcs_proto.DataMessageStanza();
             if (object.id != null)
                 message.id = String(object.id);
@@ -7299,9 +7803,9 @@ $root.mcs_proto = (function() {
                     throw TypeError(".mcs_proto.DataMessageStanza.appData: array expected");
                 message.appData = [];
                 for (var i = 0; i < object.appData.length; ++i) {
-                    if (typeof object.appData[i] !== "object")
+                    if (!$util.isObject(object.appData[i]))
                         throw TypeError(".mcs_proto.DataMessageStanza.appData: object expected");
-                    message.appData[i] = $root.mcs_proto.AppData.fromObject(object.appData[i]);
+                    message.appData[i] = $root.mcs_proto.AppData.fromObject(object.appData[i], long + 1);
                 }
             }
             if (object.fromTrustedServer != null)
@@ -7316,7 +7820,7 @@ $root.mcs_proto = (function() {
                 message.regId = String(object.regId);
             if (object.deviceUserId != null)
                 if ($util.Long)
-                    (message.deviceUserId = $util.Long.fromValue(object.deviceUserId)).unsigned = false;
+                    message.deviceUserId = $util.Long.fromValue(object.deviceUserId, false);
                 else if (typeof object.deviceUserId === "string")
                     message.deviceUserId = parseInt(object.deviceUserId, 10);
                 else if (typeof object.deviceUserId === "number")
@@ -7327,7 +7831,7 @@ $root.mcs_proto = (function() {
                 message.ttl = object.ttl | 0;
             if (object.sent != null)
                 if ($util.Long)
-                    (message.sent = $util.Long.fromValue(object.sent)).unsigned = false;
+                    message.sent = $util.Long.fromValue(object.sent, false);
                 else if (typeof object.sent === "string")
                     message.sent = parseInt(object.sent, 10);
                 else if (typeof object.sent === "number")
@@ -7338,7 +7842,7 @@ $root.mcs_proto = (function() {
                 message.queued = object.queued | 0;
             if (object.status != null)
                 if ($util.Long)
-                    (message.status = $util.Long.fromValue(object.status)).unsigned = false;
+                    message.status = $util.Long.fromValue(object.status, false);
                 else if (typeof object.status === "string")
                     message.status = parseInt(object.status, 10);
                 else if (typeof object.status === "number")
@@ -7364,9 +7868,13 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        DataMessageStanza.toObject = function toObject(message, options) {
+        DataMessageStanza.toObject = function toObject(message, options, q) {
             if (!options)
                 options = {};
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             var object = {};
             if (options.arrays || options.defaults)
                 object.appData = [];
@@ -7383,21 +7891,21 @@ $root.mcs_proto = (function() {
                 object.regId = "";
                 if ($util.Long) {
                     var long = new $util.Long(0, 0, false);
-                    object.deviceUserId = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    object.deviceUserId = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : typeof BigInt !== "undefined" && options.longs === BigInt ? long.toBigInt() : long;
                 } else
-                    object.deviceUserId = options.longs === String ? "0" : 0;
+                    object.deviceUserId = options.longs === String ? "0" : typeof BigInt !== "undefined" && options.longs === BigInt ? BigInt("0") : 0;
                 object.ttl = 0;
                 if ($util.Long) {
                     var long = new $util.Long(0, 0, false);
-                    object.sent = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    object.sent = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : typeof BigInt !== "undefined" && options.longs === BigInt ? long.toBigInt() : long;
                 } else
-                    object.sent = options.longs === String ? "0" : 0;
+                    object.sent = options.longs === String ? "0" : typeof BigInt !== "undefined" && options.longs === BigInt ? BigInt("0") : 0;
                 object.queued = 0;
                 if ($util.Long) {
                     var long = new $util.Long(0, 0, false);
-                    object.status = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    object.status = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : typeof BigInt !== "undefined" && options.longs === BigInt ? long.toBigInt() : long;
                 } else
-                    object.status = options.longs === String ? "0" : 0;
+                    object.status = options.longs === String ? "0" : typeof BigInt !== "undefined" && options.longs === BigInt ? BigInt("0") : 0;
                 if (options.bytes === String)
                     object.rawData = "";
                 else {
@@ -7407,53 +7915,59 @@ $root.mcs_proto = (function() {
                 }
                 object.immediateAck = false;
             }
-            if (message.id != null && message.hasOwnProperty("id"))
+            if (message.id != null && Object.hasOwnProperty.call(message, "id"))
                 object.id = message.id;
-            if (message.from != null && message.hasOwnProperty("from"))
+            if (message.from != null && Object.hasOwnProperty.call(message, "from"))
                 object.from = message.from;
-            if (message.to != null && message.hasOwnProperty("to"))
+            if (message.to != null && Object.hasOwnProperty.call(message, "to"))
                 object.to = message.to;
-            if (message.category != null && message.hasOwnProperty("category"))
+            if (message.category != null && Object.hasOwnProperty.call(message, "category"))
                 object.category = message.category;
-            if (message.token != null && message.hasOwnProperty("token"))
+            if (message.token != null && Object.hasOwnProperty.call(message, "token"))
                 object.token = message.token;
             if (message.appData && message.appData.length) {
                 object.appData = [];
                 for (var j = 0; j < message.appData.length; ++j)
-                    object.appData[j] = $root.mcs_proto.AppData.toObject(message.appData[j], options);
+                    object.appData[j] = $root.mcs_proto.AppData.toObject(message.appData[j], options, q + 1);
             }
-            if (message.fromTrustedServer != null && message.hasOwnProperty("fromTrustedServer"))
+            if (message.fromTrustedServer != null && Object.hasOwnProperty.call(message, "fromTrustedServer"))
                 object.fromTrustedServer = message.fromTrustedServer;
-            if (message.persistentId != null && message.hasOwnProperty("persistentId"))
+            if (message.persistentId != null && Object.hasOwnProperty.call(message, "persistentId"))
                 object.persistentId = message.persistentId;
-            if (message.streamId != null && message.hasOwnProperty("streamId"))
+            if (message.streamId != null && Object.hasOwnProperty.call(message, "streamId"))
                 object.streamId = message.streamId;
-            if (message.lastStreamIdReceived != null && message.hasOwnProperty("lastStreamIdReceived"))
+            if (message.lastStreamIdReceived != null && Object.hasOwnProperty.call(message, "lastStreamIdReceived"))
                 object.lastStreamIdReceived = message.lastStreamIdReceived;
-            if (message.regId != null && message.hasOwnProperty("regId"))
+            if (message.regId != null && Object.hasOwnProperty.call(message, "regId"))
                 object.regId = message.regId;
-            if (message.deviceUserId != null && message.hasOwnProperty("deviceUserId"))
-                if (typeof message.deviceUserId === "number")
+            if (message.deviceUserId != null && Object.hasOwnProperty.call(message, "deviceUserId"))
+                if (typeof BigInt !== "undefined" && options.longs === BigInt)
+                    object.deviceUserId = typeof message.deviceUserId === "number" ? BigInt(message.deviceUserId) : $util.Long.fromBits(message.deviceUserId.low >>> 0, message.deviceUserId.high >>> 0, false).toBigInt();
+                else if (typeof message.deviceUserId === "number")
                     object.deviceUserId = options.longs === String ? String(message.deviceUserId) : message.deviceUserId;
                 else
                     object.deviceUserId = options.longs === String ? $util.Long.prototype.toString.call(message.deviceUserId) : options.longs === Number ? new $util.LongBits(message.deviceUserId.low >>> 0, message.deviceUserId.high >>> 0).toNumber() : message.deviceUserId;
-            if (message.ttl != null && message.hasOwnProperty("ttl"))
+            if (message.ttl != null && Object.hasOwnProperty.call(message, "ttl"))
                 object.ttl = message.ttl;
-            if (message.sent != null && message.hasOwnProperty("sent"))
-                if (typeof message.sent === "number")
+            if (message.sent != null && Object.hasOwnProperty.call(message, "sent"))
+                if (typeof BigInt !== "undefined" && options.longs === BigInt)
+                    object.sent = typeof message.sent === "number" ? BigInt(message.sent) : $util.Long.fromBits(message.sent.low >>> 0, message.sent.high >>> 0, false).toBigInt();
+                else if (typeof message.sent === "number")
                     object.sent = options.longs === String ? String(message.sent) : message.sent;
                 else
                     object.sent = options.longs === String ? $util.Long.prototype.toString.call(message.sent) : options.longs === Number ? new $util.LongBits(message.sent.low >>> 0, message.sent.high >>> 0).toNumber() : message.sent;
-            if (message.queued != null && message.hasOwnProperty("queued"))
+            if (message.queued != null && Object.hasOwnProperty.call(message, "queued"))
                 object.queued = message.queued;
-            if (message.status != null && message.hasOwnProperty("status"))
-                if (typeof message.status === "number")
+            if (message.status != null && Object.hasOwnProperty.call(message, "status"))
+                if (typeof BigInt !== "undefined" && options.longs === BigInt)
+                    object.status = typeof message.status === "number" ? BigInt(message.status) : $util.Long.fromBits(message.status.low >>> 0, message.status.high >>> 0, false).toBigInt();
+                else if (typeof message.status === "number")
                     object.status = options.longs === String ? String(message.status) : message.status;
                 else
                     object.status = options.longs === String ? $util.Long.prototype.toString.call(message.status) : options.longs === Number ? new $util.LongBits(message.status.low >>> 0, message.status.high >>> 0).toNumber() : message.status;
-            if (message.rawData != null && message.hasOwnProperty("rawData"))
+            if (message.rawData != null && Object.hasOwnProperty.call(message, "rawData"))
                 object.rawData = options.bytes === String ? $util.base64.encode(message.rawData, 0, message.rawData.length) : options.bytes === Array ? Array.prototype.slice.call(message.rawData) : message.rawData;
-            if (message.immediateAck != null && message.hasOwnProperty("immediateAck"))
+            if (message.immediateAck != null && Object.hasOwnProperty.call(message, "immediateAck"))
                 object.immediateAck = message.immediateAck;
             return object;
         };
@@ -7507,7 +8021,7 @@ $root.mcs_proto = (function() {
         function StreamAck(properties) {
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
+                    if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         }
 
@@ -7532,9 +8046,13 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        StreamAck.encode = function encode(message, writer) {
+        StreamAck.encode = function encode(message, writer, q) {
             if (!writer)
                 writer = $Writer.create();
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             return writer;
         };
 
@@ -7548,7 +8066,7 @@ $root.mcs_proto = (function() {
          * @returns {$protobuf.Writer} Writer
          */
         StreamAck.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
+            return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
         };
 
         /**
@@ -7562,15 +8080,21 @@ $root.mcs_proto = (function() {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        StreamAck.decode = function decode(reader, length) {
+        StreamAck.decode = function decode(reader, length, error, long) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
+            if (long === undefined)
+                long = 0;
+            if (long > $Reader.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.StreamAck();
             while (reader.pos < end) {
                 var tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 default:
-                    reader.skipType(tag & 7);
+                    reader.skipType(tag & 7, long);
                     break;
                 }
             }
@@ -7601,9 +8125,13 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        StreamAck.verify = function verify(message) {
+        StreamAck.verify = function verify(message, long) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                return "maximum nesting depth exceeded";
             return null;
         };
 
@@ -7615,7 +8143,7 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} object Plain object
          * @returns {mcs_proto.StreamAck} StreamAck
          */
-        StreamAck.fromObject = function fromObject(object) {
+        StreamAck.fromObject = function fromObject(object, long) {
             if (object instanceof $root.mcs_proto.StreamAck)
                 return object;
             return new $root.mcs_proto.StreamAck();
@@ -7684,7 +8212,7 @@ $root.mcs_proto = (function() {
             this.id = [];
             if (properties)
                 for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
+                    if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         }
 
@@ -7717,9 +8245,13 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        SelectiveAck.encode = function encode(message, writer) {
+        SelectiveAck.encode = function encode(message, writer, q) {
             if (!writer)
                 writer = $Writer.create();
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             if (message.id != null && message.id.length)
                 for (var i = 0; i < message.id.length; ++i)
                     writer.uint32(/* id 1, wireType 2 =*/10).string(message.id[i]);
@@ -7736,7 +8268,7 @@ $root.mcs_proto = (function() {
          * @returns {$protobuf.Writer} Writer
          */
         SelectiveAck.encodeDelimited = function encodeDelimited(message, writer) {
-            return this.encode(message, writer).ldelim();
+            return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
         };
 
         /**
@@ -7750,12 +8282,18 @@ $root.mcs_proto = (function() {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        SelectiveAck.decode = function decode(reader, length) {
+        SelectiveAck.decode = function decode(reader, length, error, long) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
+            if (long === undefined)
+                long = 0;
+            if (long > $Reader.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var end = length === undefined ? reader.len : reader.pos + length, message = new $root.mcs_proto.SelectiveAck();
             while (reader.pos < end) {
                 var tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         if (!(message.id && message.id.length))
@@ -7764,7 +8302,7 @@ $root.mcs_proto = (function() {
                         break;
                     }
                 default:
-                    reader.skipType(tag & 7);
+                    reader.skipType(tag & 7, long);
                     break;
                 }
             }
@@ -7795,10 +8333,14 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        SelectiveAck.verify = function verify(message) {
+        SelectiveAck.verify = function verify(message, long) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
-            if (message.id != null && message.hasOwnProperty("id")) {
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                return "maximum nesting depth exceeded";
+            if (message.id != null && Object.hasOwnProperty.call(message, "id")) {
                 if (!Array.isArray(message.id))
                     return "id: array expected";
                 for (var i = 0; i < message.id.length; ++i)
@@ -7816,9 +8358,15 @@ $root.mcs_proto = (function() {
          * @param {Object.<string,*>} object Plain object
          * @returns {mcs_proto.SelectiveAck} SelectiveAck
          */
-        SelectiveAck.fromObject = function fromObject(object) {
+        SelectiveAck.fromObject = function fromObject(object, long) {
             if (object instanceof $root.mcs_proto.SelectiveAck)
                 return object;
+            if (!$util.isObject(object))
+                throw TypeError(".mcs_proto.SelectiveAck: object expected");
+            if (long === undefined)
+                long = 0;
+            if (long > $util.recursionLimit)
+                throw Error("maximum nesting depth exceeded");
             var message = new $root.mcs_proto.SelectiveAck();
             if (object.id) {
                 if (!Array.isArray(object.id))
@@ -7839,9 +8387,13 @@ $root.mcs_proto = (function() {
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        SelectiveAck.toObject = function toObject(message, options) {
+        SelectiveAck.toObject = function toObject(message, options, q) {
             if (!options)
                 options = {};
+            if (q === undefined)
+                q = 0;
+            if (q > $util.recursionLimit)
+                throw Error("max depth exceeded");
             var object = {};
             if (options.arrays || options.defaults)
                 object.id = [];

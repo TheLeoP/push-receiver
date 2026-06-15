@@ -9,7 +9,8 @@
     "moduleResolution": "nodenext",
     "sourceMap": true,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "types": ["node"]
   },
   "exclude": ["src/protos.d.ts", "dist", "src/wrapper.js"]
 }

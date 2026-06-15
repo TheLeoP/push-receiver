@@ -5,6 +5,17 @@ import * as ece from "http_ece";
 import type * as Types from "../types.js";
 import { mcs_proto } from "../protos.js";
 
+function parseHeaderParams(header: string) {
+  return Object.fromEntries(
+    header.split(";").map((part) => {
+      const [key, ...rest] = part.trim().split("=");
+      const trimmedKey = key.trim();
+      const value = rest.join("=").trim();
+      return [trimmedKey, value];
+    }),
+  );
+}
+
 // https://tools.ietf.org/html/draft-ietf-webpush-encryption-03
 export default function decrypt<T>(
   object: mcs_proto.IDataMessageStanza,
@@ -18,15 +29,22 @@ export default function decrypt<T>(
   const salt = object.appData.find((item) => item.key === "encryption");
   if (!salt) throw new Error("salt is missing");
 
+  const cryptoKeyParams = parseHeaderParams(cryptoKey.value);
+  const saltParams = parseHeaderParams(salt.value);
+  if (!cryptoKeyParams.dh)
+    throw new Error("crypto-key header is missing dh parameter");
+  if (!saltParams.salt)
+    throw new Error("encryption header is missing salt parameter");
+
   const dh = crypto.createECDH("prime256v1");
   dh.setPrivateKey(keys.privateKey, "base64");
 
   const params = {
     version: "aesgcm",
     authSecret: keys.authSecret,
-    dh: cryptoKey.value.slice(3),
+    dh: cryptoKeyParams.dh,
     privateKey: dh,
-    salt: salt.value.slice(5),
+    salt: saltParams.salt,
   };
   const decrypted = ece.decrypt(object.rawData, params);
   const out = JSON.parse(decrypted);
