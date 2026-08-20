@@ -30,7 +30,7 @@ export default class Parser {
   #socket: TLSSocket;
   #state: ProcessingState = ProcessingState.MCS_VERSION_TAG_AND_SIZE;
   #data: Buffer = Buffer.alloc(0);
-  #messageTag = 0;
+  #messageTag: MCSProtoTag = 0;
   #messageSize = 0;
   #handshakeComplete = false;
   #isWaitingForData = true;
@@ -232,7 +232,7 @@ export default class Parser {
     this.#waitForData();
   }
 
-  #buildProtobufFromTag(tag: number) {
+  #buildProtobufFromTag(tag: MCSProtoTag) {
     switch (tag) {
       case MCSProtoTag.kHeartbeatPingTag:
         return Protos.mcs_proto.HeartbeatPing;
