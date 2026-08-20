@@ -32,7 +32,7 @@ export default class Parser {
   #data: Buffer = Buffer.alloc(0);
   #messageTag: MCSProtoTag = 0;
   #messageSize = 0;
-  #handshakeComplete = false;
+  #isHandshakeCompleted = false;
 
   constructor(socket: TLSSocket) {
     this.#socket = socket;
@@ -56,59 +56,71 @@ export default class Parser {
   };
 
   #waitForData() {
-    debug(`waitForData state: ${this.#state}`);
+    // TODO: this shouldn't cause an infinite loop because the function will
+    // return as soon as `this.#data.length < minBytesNeeded` and every
+    // handleGot function makes `this.#data.length` smaller, right?
+    while (true) {
+      debug(`waitForData state: ${this.#state}`);
 
-    let minBytesNeeded = 0;
+      let minBytesNeeded = 0;
 
-    switch (this.#state) {
-      case ProcessingState.MCS_VERSION_TAG_AND_SIZE:
-        minBytesNeeded += Variables.kVersionPacketLen;
-        minBytesNeeded += Variables.kTagPacketLen;
-        minBytesNeeded += Variables.kSizePacketLenMin;
-        break;
-      case ProcessingState.MCS_TAG_AND_SIZE:
-        minBytesNeeded += Variables.kTagPacketLen;
-        minBytesNeeded += Variables.kSizePacketLenMin;
-        break;
-      case ProcessingState.MCS_SIZE:
-        minBytesNeeded += Variables.kSizePacketLenMin;
-        break;
-      case ProcessingState.MCS_PROTO_BYTES:
-        minBytesNeeded = this.#messageSize;
-        break;
-      default:
-        this.#emitError(new Error(`Unexpected state: ${this.#state}`));
-        return;
-    }
+      switch (this.#state) {
+        case ProcessingState.MCS_VERSION_TAG_AND_SIZE:
+          minBytesNeeded += Variables.kVersionPacketLen;
+          minBytesNeeded += Variables.kTagPacketLen;
+          minBytesNeeded += Variables.kSizePacketLenMin;
+          break;
+        case ProcessingState.MCS_TAG_AND_SIZE:
+          minBytesNeeded += Variables.kTagPacketLen;
+          minBytesNeeded += Variables.kSizePacketLenMin;
+          break;
+        case ProcessingState.MCS_SIZE:
+          minBytesNeeded += Variables.kSizePacketLenMin;
+          break;
+        case ProcessingState.MCS_PROTO_BYTES:
+          minBytesNeeded = this.#messageSize;
+          break;
+        default:
+          this.#emitError(new Error(`Unexpected state: ${this.#state}`));
+          return;
+      }
 
-    if (this.#data.length < minBytesNeeded) {
-      debug(
-        `Waiting for ${minBytesNeeded - this.#data.length} more bytes. Got ${this.#data.length}`,
-      );
-      return;
-    }
+      if (this.#data.length < minBytesNeeded)
+        return debug(
+          `Waiting for ${minBytesNeeded - this.#data.length} more bytes. Got ${this.#data.length}`,
+        );
 
-    debug(`Processing MCS data: state == ${this.#state}`);
+      debug(`Processing MCS data: state == ${this.#state}`);
 
-    switch (this.#state) {
-      case ProcessingState.MCS_VERSION_TAG_AND_SIZE:
-        this.#handleGotVersion();
-        this.#handleGotMessageTag();
-        this.#handleGotMessageSize();
-        break;
-      case ProcessingState.MCS_TAG_AND_SIZE:
-        this.#handleGotMessageTag();
-        this.#handleGotMessageSize();
-        break;
-      case ProcessingState.MCS_SIZE:
-        this.#handleGotMessageSize();
-        break;
-      case ProcessingState.MCS_PROTO_BYTES:
-        this.#handleGotMessageBytes();
-        break;
-      default:
-        this.#emitError(new Error(`Unexpected state: ${this.#state}`));
-        return;
+      switch (this.#state) {
+        case ProcessingState.MCS_VERSION_TAG_AND_SIZE: {
+          let ok = this.#handleGotVersion();
+          if (!ok) return;
+          this.#handleGotMessageTag();
+          ok = this.#handleGotMessageSize();
+          if (!ok) return;
+          break;
+        }
+        case ProcessingState.MCS_TAG_AND_SIZE: {
+          this.#handleGotMessageTag();
+          const ok = this.#handleGotMessageSize();
+          if (!ok) return;
+          break;
+        }
+        case ProcessingState.MCS_SIZE: {
+          const ok = this.#handleGotMessageSize();
+          if (!ok) return;
+          break;
+        }
+        case ProcessingState.MCS_PROTO_BYTES: {
+          const ok = this.#handleGotMessageBytes();
+          if (!ok) return;
+          break;
+        }
+        default:
+          this.#emitError(new Error(`Unexpected state: ${this.#state}`));
+          return;
+      }
     }
   }
 
@@ -119,8 +131,10 @@ export default class Parser {
 
     if (version < Variables.kMCSVersion && version !== 38) {
       this.#emitError(new Error(`Got wrong version: ${version}`));
-      return;
+      return false;
     }
+
+    return true;
   }
 
   #handleGotMessageTag() {
@@ -130,70 +144,58 @@ export default class Parser {
   }
 
   #handleGotMessageSize() {
-    let incompleteSizePacket = false;
     const reader = new ProtobufJS.BufferReader(this.#data);
 
     try {
       this.#messageSize = reader.int32();
     } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message.startsWith("index out of range:")
-      ) {
-        incompleteSizePacket = true;
-      } else if (error instanceof Error) {
+      // TODO: there used to be a check here for a try-catch with
+      // `error.message.startsWith("index out of range:")` to try and read the
+      // package again if the package was incomplete. Since the code is
+      // synchronous, there will never be more data to complete the packet and
+      // the function would have returned early anyway if there wasn't enough
+      // bytes to read a size packet. But, if there's some weird issue in the
+      // future, it chould be a consequence of removing it
+      if (error instanceof Error) {
         this.#emitError(error);
-        return;
+        return false;
       }
-    }
-
-    // TODO(ibash) in chromium code there is an extra check here of:
-    // if prev_byte_count >= kSizePacketLenMax then something else went wrong
-    // NOTE(ibash) I could only test this case by manually cutting the buffer
-    // above to be mid-packet like: new ProtobufJS.BufferReader(this.#data.slice(0, 1))
-    if (incompleteSizePacket) {
-      this.#state = ProcessingState.MCS_SIZE;
-      // TODO(TheLeoP): this can cause infinite recursion
-      this.#waitForData();
-      return;
     }
 
     this.#data = this.#data.subarray(reader.pos);
 
     debug(`Proto size: ${this.#messageSize}`);
 
-    if (this.#messageSize > 0) {
-      this.#state = ProcessingState.MCS_PROTO_BYTES;
-      this.#waitForData();
-    } else {
-      this.#handleGotMessageBytes();
-    }
+    // TODO: there used to be a check if this.#messageSize > 0 here. If true,
+    // #waitForData was called, if false, handleGotMessageBytes was called
+    // directly. I think both are equivalent, but if I find some weird erorr,
+    // it could be this change
+    this.#state = ProcessingState.MCS_PROTO_BYTES;
+    return true;
   }
 
   #handleGotMessageBytes() {
     const protobuf = this.#buildProtobufFromTag(this.#messageTag);
     if (!protobuf) {
       this.#emitError(new Error("Unknown tag"));
-      return;
+      return true;
     }
 
     // Messages with no content are valid just use the default protobuf for
     // that tag.
     if (this.#messageSize === 0) {
       this.emmiter.emit("message", { tag: this.#messageTag, object: {} });
-      this.#getNextMessage();
-      return;
+
+      this.#messageTag = 0;
+      this.#messageSize = 0;
+      this.#state = ProcessingState.MCS_TAG_AND_SIZE;
+      return true;
     }
 
-    if (this.#data.length < this.#messageSize) {
-      // Continue reading data.
-      debug(
-        `Continuing data read. Buffer size is ${this.#data.length}, expecting ${this.#messageSize}`,
-      );
-      this.#state = ProcessingState.MCS_PROTO_BYTES;
-      this.#waitForData();
-      return;
-    }
+    // TODO: there used to be a check for `this.#data.length < this.#messageSize`
+    // in here. I think it shouldn't be possible because of the early return if
+    // there are not enough bytes, so I removed it. If there are any weird
+    // issues in the future, they may be comming from here
 
     const buffer = this.#data.subarray(0, this.#messageSize);
     const message = protobuf.decode(buffer);
@@ -209,22 +211,18 @@ export default class Parser {
     this.emmiter.emit("message", { tag: this.#messageTag, object });
 
     if (this.#messageTag === MCSProtoTag.kLoginResponseTag) {
-      if (this.#handshakeComplete) {
+      if (this.#isHandshakeCompleted) {
         error("Unexpected login response");
       } else {
-        this.#handshakeComplete = true;
+        this.#isHandshakeCompleted = true;
         debug("GCM Handshake complete.");
       }
     }
 
-    this.#getNextMessage();
-  }
-
-  #getNextMessage() {
     this.#messageTag = 0;
     this.#messageSize = 0;
     this.#state = ProcessingState.MCS_TAG_AND_SIZE;
-    this.#waitForData();
+    return true;
   }
 
   #buildProtobufFromTag(tag: MCSProtoTag) {
