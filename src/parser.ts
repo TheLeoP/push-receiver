@@ -67,10 +67,13 @@ export default class Parser {
     switch (this.#state) {
       case ProcessingState.MCS_VERSION_TAG_AND_SIZE:
         minBytesNeeded += Variables.kVersionPacketLen;
-      // eslint-disable-next-line no-fallthrough
+        minBytesNeeded += Variables.kTagPacketLen;
+        minBytesNeeded += Variables.kSizePacketLenMin;
+        break;
       case ProcessingState.MCS_TAG_AND_SIZE:
         minBytesNeeded += Variables.kTagPacketLen;
-      // eslint-disable-next-line no-fallthrough
+        minBytesNeeded += Variables.kSizePacketLenMin;
+        break;
       case ProcessingState.MCS_SIZE:
         minBytesNeeded += Variables.kSizePacketLenMin;
         break;
