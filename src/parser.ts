@@ -33,7 +33,6 @@ export default class Parser {
   #messageTag: MCSProtoTag = 0;
   #messageSize = 0;
   #handshakeComplete = false;
-  #isWaitingForData = true;
 
   constructor(socket: TLSSocket) {
     this.#socket = socket;
@@ -41,7 +40,6 @@ export default class Parser {
   }
 
   destroy(): void {
-    this.#isWaitingForData = false;
     this.#socket.removeListener("data", this.#handleData);
   }
 
@@ -53,10 +51,8 @@ export default class Parser {
   #handleData = (buffer: Buffer) => {
     debug(`Got data: ${buffer.length}`);
     this.#data = Buffer.concat([this.#data, buffer]);
-    if (this.#isWaitingForData) {
-      this.#isWaitingForData = false;
-      this.#waitForData();
-    }
+
+    this.#waitForData();
   };
 
   #waitForData() {
@@ -89,7 +85,6 @@ export default class Parser {
       debug(
         `Waiting for ${minBytesNeeded - this.#data.length} more bytes. Got ${this.#data.length}`,
       );
-      this.#isWaitingForData = true;
       return;
     }
 
