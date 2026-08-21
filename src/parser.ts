@@ -52,10 +52,6 @@ export default class Parser {
     debug(`Got data: ${buffer.length}`);
     this.#data = Buffer.concat([this.#data, buffer]);
 
-    this.#waitForData();
-  };
-
-  #waitForData() {
     // TODO: this shouldn't cause an infinite loop because the function will
     // return as soon as `this.#data.length < minBytesNeeded` and every
     // handleGot function makes `this.#data.length` smaller, right?
@@ -122,7 +118,7 @@ export default class Parser {
           return;
       }
     }
-  }
+  };
 
   #handleGotVersion() {
     const version = this.#data.readInt8(0);
